@@ -1,10 +1,12 @@
 #pragma once
 
+#include <Arduino.h>
 #include <PID_v2.h>
 #include <ReactESP.h>
 #include <myTypes.h>
 #include <profile.h>
 #include <temperature.h>
+#include <ArduinoJson.h>
 
 namespace resp32flow
 {
@@ -25,7 +27,7 @@ namespace resp32flow
     double m_relayOnTime = 0; // linked into pid output
     double m_ovenTemp;        // input to pid
     double m_setPoint;        // setPoint for pid
-    double m_sampleTime = 5000;
+    double m_sampleRate = 5000;
 
     void setupProfileStep();
 
@@ -39,7 +41,7 @@ namespace resp32flow
     const resp32flow::ProfileStep *getCurrentProfileStep() const;
     resp32flow::time_t getStepTimer() const;
 
-    void toJSON(ArduinoJson6194_F1::ObjectRef &a_jsonObject) const;
-    void fromJSON();
+    void toJSON(ArduinoJson::JsonObject a_jsonObject) const;
+    void fromJSON(ArduinoJson::JsonObject a_jsonObject);
   };
 } // namespace reflow

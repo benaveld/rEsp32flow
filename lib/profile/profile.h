@@ -21,6 +21,7 @@ namespace resp32flow
   struct Profile
   {
     std::string name;
+    int id;
     std::vector<ProfileStep> steps;
 
     Profile() = default;

@@ -26,7 +26,7 @@ void resp32flow::RelayController::start(const Profile &a_profile)
   m_ovenTemp = m_temperatureSensor.getOvenTemp();
   m_relayOnTime = 0;
   m_setPoint = 100;
-  m_pid.SetOutputLimits(0, m_sampleTime);
+  m_pid.SetOutputLimits(0, m_sampleRate);
   m_pid.SetMode(PID::Automatic);
   xSemaphoreGiveRecursive(m_mutex);
 
@@ -87,7 +87,7 @@ void resp32flow::RelayController::tick()
   digitalWrite(m_relayPin, HIGH);
   vTaskDelay(m_relayOnTime / portTICK_PERIOD_MS);
   digitalWrite(m_relayPin, LOW);
-  vTaskDelay((m_sampleTime - m_relayOnTime) / portTICK_PERIOD_MS);
+  vTaskDelay((m_sampleRate - m_relayOnTime) / portTICK_PERIOD_MS);
 }
 
 auto resp32flow::RelayController::getCurentProfile() const -> decltype(m_selectedProfile)
@@ -115,4 +115,32 @@ resp32flow::time_t resp32flow::RelayController::getStepTimer() const
     stepTime = millis() - m_stepStartTime;
   xSemaphoreGiveRecursive(m_mutex);
   return stepTime;
+}
+
+void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) const
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  a_jsonObject["isOn"] = m_selectedProfile != nullptr;
+  a_jsonObject["sampleRate"] = m_sampleRate;
+  if (m_selectedProfile != nullptr)
+  {
+    a_jsonObject["profileId"] = m_selectedProfile->id;
+    a_jsonObject["profileStepIndex"] = m_profileStep;
+    a_jsonObject["stepTime"] = getStepTimer();
+
+    auto jsonPid = a_jsonObject.createNestedObject("pid");
+    jsonPid["Kp"] = m_pid.GetKp();
+    jsonPid["Ki"] = m_pid.GetKi();
+    jsonPid["Kd"] = m_pid.GetKd();
+    jsonPid["setPoint"] = m_setPoint;
+  }
+  xSemaphoreGiveRecursive(m_mutex);
+}
+
+void resp32flow::RelayController::fromJSON(ArduinoJson::JsonObject a_jsonObject)
+{
+  if (a_jsonObject.containsKey("isOn") && !a_jsonObject["isOn"].as<bool>())
+  {
+    stop();
+  }
 }

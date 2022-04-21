@@ -19,7 +19,8 @@ void resp32flow::ProfileStep::toJSON(ArduinoJson::JsonObject a_jsonObject) const
 }
 
 resp32flow::Profile::Profile(ArduinoJson::JsonObjectConst a_json)
-    : name(a_json["name"].as<std::string>())
+    : name(a_json["name"].as<std::string>()),
+      id(a_json["id"])
 {
   for(auto step : a_json["steps"].as<JsonArrayConst>()){
     steps.emplace_back(step.as<JsonObjectConst>());
@@ -29,6 +30,7 @@ resp32flow::Profile::Profile(ArduinoJson::JsonObjectConst a_json)
 void resp32flow::Profile::toJSON(ArduinoJson::JsonObject a_jsonObject) const
 {
   a_jsonObject["name"] = name;
+  a_jsonObject["id"] = id;
   auto jsonSteps = a_jsonObject.createNestedArray("steps");
   for (const auto &step : steps)
   {
