@@ -2,30 +2,44 @@
 
 #include <PID_v2.h>
 #include <ReactESP.h>
-#include <relayIState.h>
+#include <myTypes.h>
+#include <profile.h>
+#include <temperature.h>
 
 namespace resp32flow
 {
-  class RelayController : public RelayIState
+  class RelayController
   {
   private:
-    const uint8_t m_relayPin;
-    PID_v2 m_pid;
+    constexpr static TickType_t MUTEX_BLOCK_DELAY = 10.0 / portTICK_PERIOD_MS; // 10ms
 
-    Profile* m_selectedProfile = nullptr;
+    const uint8_t m_relayPin;
+    const Temperature &m_temperatureSensor;
+    const Profile *m_selectedProfile = nullptr;
+    SemaphoreHandle_t m_mutex;
+    TaskHandle_t m_taskHandler = nullptr;
+    PID m_pid;
+
     size_t m_profileStep = 0;
-    time_t m_stepTimer = 0;
+    time_t m_stepStartTime = 0;
+    double m_relayOnTime = 0; // linked into pid output
+    double m_ovenTemp;        // input to pid
+    double m_setPoint;        // setPoint for pid
+    double m_sampleTime = 5000;
+
+    void setupProfileStep();
 
   public:
-    RelayController(decltype(m_relayPin) a_relayPin);
-    void tick(reactesp::ReactESP &app);
+    RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor);
+    void start(const Profile &a_profile);
+    void stop();
+    void tick();
 
-    virtual resp32flow::Profile *getCurentProfile() const;
-    virtual resp32flow::ProfileStep *getCurrentProfileStep() const;
-    virtual resp32flow::ProfileStep *getNextProfileStep() const;
-    virtual resp32flow::time_t getStepTimer() const;
+    decltype(m_selectedProfile) getCurentProfile() const;
+    const resp32flow::ProfileStep *getCurrentProfileStep() const;
+    resp32flow::time_t getStepTimer() const;
 
-    virtual void toJSON(ArduinoJson6194_F1::ObjectRef &a_jsonObject) const;
-    virtual void fromJSON();
+    void toJSON(ArduinoJson6194_F1::ObjectRef &a_jsonObject) const;
+    void fromJSON();
   };
 } // namespace reflow

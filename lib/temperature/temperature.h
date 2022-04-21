@@ -1,7 +1,7 @@
 #pragma once
 
 #include <myTypes.h>
-#include <CircularArray.h>
+#include <CircularBuffer.h>
 #include <Adafruit_MAX31856.h>
 
 namespace resp32flow
@@ -10,22 +10,19 @@ namespace resp32flow
   {
   public:
     constexpr static size_t historySize = 60;
+    using temp_t = resp32flow::temp_t;
+    using history_t = CircularBuffer<temp_t, historySize>;
 
-  protected:
-    constexpr static int8_t MAX31856_CS = 5;
-    constexpr static int8_t MAX31856_DRDY = 16;
-    constexpr static int8_t MAX31856_FLT = 17;
+    virtual temp_t getOvenTemp() const = 0;
+    virtual temp_t getChipTemp() const = 0;
 
-    Adafruit_MAX31856 m_thermo;
-    CircularArray<temp_t, historySize> m_ovenHistory;
-    CircularArray<temp_t, historySize> m_chipHistory;
+    const history_t &getOvenTempHistory() const;
+    const history_t &getChipTempHistory() const;
+    void updateHistory();
 
-  public:
-    virtual void setup();
-    virtual temp_t getOvenTemp() const;
-    virtual temp_t getChipTemp() const;
-    virtual const decltype(m_ovenHistory) &getOvenTempHistory() const;
-    virtual const decltype(m_chipHistory) &getChipTempHistory() const;
+  private:
+    history_t m_ovenHistory;
+    history_t m_chipHistory;
   };
 
 } // namespace resp32flow

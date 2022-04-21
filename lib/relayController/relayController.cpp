@@ -1,24 +1,118 @@
 #include "relayController.h"
 
-resp32flow::RelayController::RelayController(decltype(m_relayPin) a_relayPin)
+void controllerLoop(void *parameter)
+{
+  auto controller = (resp32flow::RelayController *)parameter;
+  controller->tick();
+}
+
+resp32flow::RelayController::RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor)
     : m_relayPin(a_relayPin),
-      m_pid(0, 0, 0, PID::Direction::Direct)
+      m_temperatureSensor(a_temperatureSensor),
+      m_pid(&m_ovenTemp, &m_relayOnTime, &m_setPoint, 0, 0, 0, PID::Direction::Direct),
+      m_mutex(xSemaphoreCreateRecursiveMutex())
 {
 }
 
-void resp32flow::RelayController::tick(reactesp::ReactESP &a_app)
+void resp32flow::RelayController::start(const Profile &a_profile)
 {
-  if (isOn())
-    return;
+  if (m_selectedProfile != nullptr)
+    throw std::runtime_error("Controller already running.");
 
-  auto& step = m_state.getCurrentProfileStep();
-  if(step.targetTemp <= a_state.getOvenTemp() && step.timer <= a_state.getStepTimer()){
-    auto& nextStep = a_state.getNextProfileStep();
-    m_pid.SetTunings(nextStep.Kp, nextStep.Ki, nextStep.Kd);
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  m_selectedProfile = &a_profile;
+  m_profileStep = 0;
+  setupProfileStep();
+  m_ovenTemp = m_temperatureSensor.getOvenTemp();
+  m_relayOnTime = 0;
+  m_setPoint = 100;
+  m_pid.SetOutputLimits(0, m_sampleTime);
+  m_pid.SetMode(PID::Automatic);
+  xSemaphoreGiveRecursive(m_mutex);
+
+  xTaskCreate(controllerLoop, "RelayController loop", 1024, this, 1, &m_taskHandler);
+}
+
+void resp32flow::RelayController::stop()
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  vTaskDelete(m_taskHandler);
+  digitalWrite(m_relayPin, LOW);
+  m_selectedProfile = nullptr;
+  xSemaphoreGiveRecursive(m_mutex);
+}
+
+void resp32flow::RelayController::setupProfileStep()
+{
+  if (m_selectedProfile == nullptr)
+    return;
+  auto &&step = getCurrentProfileStep();
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  m_pid.SetTunings(step->Kp, step->Ki, step->Kd);
+  m_stepStartTime = millis();
+  xSemaphoreGiveRecursive(m_mutex);
+}
+
+void resp32flow::RelayController::tick()
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  if (m_selectedProfile == nullptr)
+  {
+    xSemaphoreGiveRecursive(m_mutex);
+    vTaskDelete(NULL);
+    return;
   }
 
-  auto ovenOnTime = m_pid.Run(a_state.getOvenTemp());
-  digitalWrite(m_relayPin, HIGH);
+  auto ovenTemp = m_temperatureSensor.getOvenTemp();
+  auto stepTime = getStepTimer();
+  auto &&step = getCurrentProfileStep();
+  if (step->targetTemp <= ovenTemp && step->timer <= stepTime)
+  {
+    m_profileStep++;
+    if (m_profileStep < m_selectedProfile->steps.size())
+    {
+      setupProfileStep();
+    }
+    else
+    {
+      m_selectedProfile = nullptr;
+    }
+  }
 
-  //TODO reactesp with digitalwrite low
+  while (!m_pid.Compute())
+    vTaskDelay(MUTEX_BLOCK_DELAY);
+
+  xSemaphoreGiveRecursive(m_mutex);
+
+  digitalWrite(m_relayPin, HIGH);
+  vTaskDelay(m_relayOnTime / portTICK_PERIOD_MS);
+  digitalWrite(m_relayPin, LOW);
+  vTaskDelay((m_sampleTime - m_relayOnTime) / portTICK_PERIOD_MS);
+}
+
+auto resp32flow::RelayController::getCurentProfile() const -> decltype(m_selectedProfile)
+{
+  return m_selectedProfile;
+}
+
+const resp32flow::ProfileStep *resp32flow::RelayController::getCurrentProfileStep() const
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  if (m_selectedProfile == nullptr)
+    return nullptr;
+  decltype(getCurrentProfileStep()) stepPtr = nullptr;
+  if (m_profileStep < m_selectedProfile->steps.size())
+    stepPtr = &m_selectedProfile->steps[m_profileStep];
+  xSemaphoreGiveRecursive(m_mutex);
+  return stepPtr;
+}
+
+resp32flow::time_t resp32flow::RelayController::getStepTimer() const
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  auto stepTime = 0;
+  if (m_selectedProfile != nullptr)
+    stepTime = millis() - m_stepStartTime;
+  xSemaphoreGiveRecursive(m_mutex);
+  return stepTime;
 }
