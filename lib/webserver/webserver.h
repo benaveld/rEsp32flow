@@ -3,6 +3,9 @@
 
 namespace resp32flow
 {
+  class Temperature;
+  class RelayController;
+
   class WebServer
   {
   private:
@@ -10,7 +13,6 @@ namespace resp32flow
 
   public:
     WebServer(uint16_t a_port);
-    ~WebServer();
-    void setup();
+    void setup(const Temperature *a_temperatureSensor, const RelayController *a_relayController);
   };
 }

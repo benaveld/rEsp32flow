@@ -14,6 +14,14 @@ resp32flow::RelayController::RelayController(decltype(m_relayPin) a_relayPin, de
 {
 }
 
+resp32flow::RelayController::~RelayController()
+{
+  if (m_taskHandler != nullptr)
+  {
+    vTaskDelete(m_taskHandler);
+  }
+}
+
 void resp32flow::RelayController::start(const Profile &a_profile)
 {
   if (m_selectedProfile != nullptr)

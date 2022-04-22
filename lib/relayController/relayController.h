@@ -33,6 +33,7 @@ namespace resp32flow
 
   public:
     RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor);
+    ~RelayController(); 
     void start(const Profile &a_profile);
     void stop();
     void tick();

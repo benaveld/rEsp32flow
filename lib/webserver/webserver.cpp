@@ -11,6 +11,8 @@
 #error Not a ESP32 platform
 #endif
 #include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
+#include <temperature.h>
 
 const char *ssid = "yourNetworkName";
 const char *password = "yourNetworkPassword";
@@ -19,7 +21,7 @@ resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
 }
 
-void resp32flow::WebServer::setup()
+void resp32flow::WebServer::setup(const Temperature *a_temperatureSensor, const RelayController *a_relayController)
 {
   if (!SPIFFS.begin())
   {
@@ -29,13 +31,20 @@ void resp32flow::WebServer::setup()
 
   WiFi.begin(ssid, password);
 
+  int notConnectedCounter = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
-    Serial.println("Connecting to WiFi..");
+    log_i("Connecting to WiFi..\n");
+    notConnectedCounter++;
+    if (notConnectedCounter > 60)
+    {
+      log_w("Resetting due to Wifi not connecting...");
+      ESP.restart();
+    }
   }
 
-  Serial.println(WiFi.localIP());
+  log_i("local IP: \n", WiFi.localIP().toString());
 
   m_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/index.html", "text/html"); });
@@ -43,5 +52,14 @@ void resp32flow::WebServer::setup()
   m_server.on("/demo.js", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/demo.js", "text/javascript"); });
 
+  m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
+              {
+    auto response = request->beginResponseStream("application/json");
+    StaticJsonDocument<1024> doc;
+    a_temperatureSensor->toJson(doc.as<JsonObject>());
+    serializeJson(doc, *response);
+    request->send(response); });
+
   m_server.begin();
+  log_v("web server started.\n");
 }
