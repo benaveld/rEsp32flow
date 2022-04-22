@@ -4,11 +4,16 @@
 #include <CircularBuffer.h>
 #include <Adafruit_MAX31856.h>
 #include <ArduinoJson.h>
+#include <functional>
 
 namespace resp32flow
 {
   class Temperature
   {
+  protected:
+    SemaphoreHandle_t m_mutex;
+    std::function<void(uint8_t)> m_faultCallback = [](uint8_t){};
+
   public:
     constexpr static TickType_t MUTEX_BLOCK_DELAY = 10.0 / portTICK_PERIOD_MS; // 10ms
     constexpr static size_t historySize = 60*30; // 30min
@@ -24,14 +29,16 @@ namespace resp32flow
     Temperature(decltype(m_sampleRate) = 1000);
     ~Temperature();
 
+    virtual void begin();
+
     const history_t &getOvenTempHistory() const;
     const history_t &getChipTempHistory() const;
 
     virtual void toJson(ArduinoJson::JsonObject a_jsonObject) const;
-    void _updateHistory();
+    void setFaultCallback(decltype(m_faultCallback) a_faultCallback);
 
-  protected:
-    SemaphoreHandle_t m_mutex;
+    void _updateHistory();
+    void _faultCallback(uint8_t a_faultCode);
 
   private:
     TaskHandle_t m_taskHandler = nullptr;

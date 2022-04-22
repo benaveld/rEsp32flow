@@ -15,13 +15,18 @@ resp32flow::Temperature::Temperature(decltype(m_sampleRate) a_sampleRate)
     : m_mutex(xSemaphoreCreateMutex()),
       m_sampleRate(a_sampleRate)
 {
-  xTaskCreate(temperautreUpdateLoop, "temperature sensor task.", 256, this, 2, &m_taskHandler);
 }
 
 resp32flow::Temperature::~Temperature()
 {
   if (m_taskHandler != nullptr)
     vTaskDelete(m_taskHandler);
+}
+
+void resp32flow::Temperature::begin()
+{
+  log_i("begin temp");
+  xTaskCreate(temperautreUpdateLoop, "temperature sensor task.", 256, this, 2, &m_taskHandler);
 }
 
 auto resp32flow::Temperature::getChipTempHistory() const -> const history_t &
@@ -55,9 +60,22 @@ void resp32flow::Temperature::toJson(ArduinoJson::JsonObject a_jsonObject) const
     jsonOvenHistory.add(m_ovenHistory[i]);
   }
 
+  auto jsonChipHistory = a_jsonObject.createNestedArray("chipHistory");
   for (decltype(m_chipHistory)::index_t i = 0; i < m_chipHistory.size(); i++)
   {
-    jsonOvenHistory.add(m_chipHistory[i]);
+    jsonChipHistory.add(m_chipHistory[i]);
   }
   xSemaphoreGiveRecursive(m_mutex);
+}
+
+void resp32flow::Temperature::setFaultCallback(decltype(m_faultCallback) a_faultCallback)
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  m_faultCallback = a_faultCallback;
+  xSemaphoreGiveRecursive(m_mutex);
+}
+
+void resp32flow::Temperature::_faultCallback(uint8_t a_faultCode)
+{
+  m_faultCallback(a_faultCode);
 }
