@@ -25,6 +25,7 @@ namespace resp32flow
     virtual void begin() override;
     virtual temp_t getOvenTemp() const override;
     virtual temp_t getChipTemp() const override;
+    virtual uint8_t getFault() const override;
 
   private:
     Adafruit_MAX31856 m_thermo;

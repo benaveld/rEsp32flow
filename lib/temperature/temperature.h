@@ -25,6 +25,7 @@ namespace resp32flow
 
     virtual temp_t getOvenTemp() const = 0;
     virtual temp_t getChipTemp() const = 0;
+    virtual uint8_t getFault() const = 0;
 
     Temperature(decltype(m_sampleRate) = 1000);
     ~Temperature();
@@ -34,7 +35,7 @@ namespace resp32flow
     const history_t &getOvenTempHistory() const;
     const history_t &getChipTempHistory() const;
 
-    virtual void toJson(ArduinoJson::JsonObject a_jsonObject) const;
+    virtual void toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize=30) const;
     void setFaultCallback(decltype(m_faultCallback) a_faultCallback);
 
     void _updateHistory();

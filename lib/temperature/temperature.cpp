@@ -1,4 +1,5 @@
 #include <temperature.h>
+#include <myMath.h>
 
 void temperautreUpdateLoop(void *parameter)
 {
@@ -25,8 +26,7 @@ resp32flow::Temperature::~Temperature()
 
 void resp32flow::Temperature::begin()
 {
-  log_i("begin temp");
-  xTaskCreate(temperautreUpdateLoop, "temperature sensor task.", 256, this, 2, &m_taskHandler);
+  xTaskCreate(temperautreUpdateLoop, "temperature sensor task.", 1000, this, 2, &m_taskHandler);
 }
 
 auto resp32flow::Temperature::getChipTempHistory() const -> const history_t &
@@ -47,23 +47,26 @@ void resp32flow::Temperature::_updateHistory()
   xSemaphoreGiveRecursive(m_mutex);
 }
 
-void resp32flow::Temperature::toJson(ArduinoJson::JsonObject a_jsonObject) const
+void resp32flow::Temperature::toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize) const
 {
+  constexpr unsigned int precision = 1;
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  a_jsonObject["oven"] = getOvenTemp();
-  a_jsonObject["chip"] = getChipTemp();
+  a_jsonObject["oven"] = round(getOvenTemp() * std::pow(10, precision));
+  a_jsonObject["chip"] = round(getChipTemp() * std::pow(10, precision));
   a_jsonObject["historySampleRate"] = m_sampleRate;
-  auto jsonOvenHistory = a_jsonObject.createNestedArray("ovenHistory");
+  a_jsonObject["precision"] = precision;
 
-  for (decltype(m_ovenHistory)::index_t i = 0; i < m_ovenHistory.size(); i++)
+  decltype(m_ovenHistory)::index_t historyStartIndex = m_ovenHistory.size() > a_historySize ? m_ovenHistory.size() - a_historySize : 0;
+  auto jsonOvenHistory = a_jsonObject.createNestedArray("ovenHistory");
+  for (decltype(m_ovenHistory)::index_t i = historyStartIndex; i < m_ovenHistory.size(); i++)
   {
-    jsonOvenHistory.add(m_ovenHistory[i]);
+    jsonOvenHistory.add(round(m_ovenHistory[i] * std::pow(10, precision)));
   }
 
   auto jsonChipHistory = a_jsonObject.createNestedArray("chipHistory");
-  for (decltype(m_chipHistory)::index_t i = 0; i < m_chipHistory.size(); i++)
+  for (decltype(m_chipHistory)::index_t i = historyStartIndex; i < m_chipHistory.size(); i++)
   {
-    jsonChipHistory.add(m_chipHistory[i]);
+    jsonChipHistory.add(round(m_chipHistory[i] * std::pow(10, precision)));
   }
   xSemaphoreGiveRecursive(m_mutex);
 }

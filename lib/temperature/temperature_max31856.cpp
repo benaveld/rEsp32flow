@@ -40,21 +40,19 @@ void resp32flow::TemperatureMAX31856::begin()
   }
 
   m_thermo.setThermocoupleType(MAX31856_TCTYPE_K);
-  m_thermo.setConversionMode(MAX31856_CONTINUOUS);
   m_thermo.setColdJunctionFaultThreshholds(MIN_CHIP_TEMPERATURE, MAX_CHIP_TEMPERATURE);
   m_thermo.setTempFaultThreshholds(MIN_OVEN_TEMPERATURE, MAX_OVEN_TEMPERATURE);
 
-  if (interruptTemperatureSensor.temperature != nullptr || interruptTemperatureSensor.temperature != this)
+  if (interruptTemperatureSensor.temperature != nullptr )
   {
     log_e("Interrpt already set.\n");
     return;
   }
 
-  // TODO: clear fault
   pinMode(MAX31856_FLT, INPUT);
   interruptTemperatureSensor.temperature = this;
   interruptTemperatureSensor.thermo = &this->m_thermo;
-  attachInterrupt(MAX31856_FLT, sensorFaultInterupt, LOW);
+  attachInterrupt(MAX31856_FLT, sensorFaultInterupt, FALLING);
 
   Temperature::begin();
 }
@@ -73,4 +71,12 @@ resp32flow::temp_t resp32flow::TemperatureMAX31856::getChipTemp() const
   auto &&temp = const_cast<Adafruit_MAX31856 *>(&m_thermo)->readCJTemperature();
   xSemaphoreGiveRecursive(m_mutex);
   return temp;
+}
+
+uint8_t resp32flow::TemperatureMAX31856::getFault() const
+{
+  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  auto &&fault = const_cast<Adafruit_MAX31856 *>(&m_thermo)->readFault();
+  xSemaphoreGiveRecursive(m_mutex);
+  return fault;
 }

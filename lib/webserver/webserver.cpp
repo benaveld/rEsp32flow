@@ -12,6 +12,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <temperature.h>
+#include <string>
 
 const char *ssid = "";
 const char *password = "";
@@ -57,12 +58,15 @@ void resp32flow::WebServer::setup(const Temperature *a_temperatureSensor, const 
 
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
-    auto response = request->beginResponseStream("application/json");
-    StaticJsonDocument<1024> doc;
-    auto&& jsonTemperatureObject = doc.createNestedObject();
-    a_temperatureSensor->toJson(jsonTemperatureObject);
-    serializeJson(doc, *response);
-    request->send(response); });
-  
+                auto historySizePtr = request->getParam("historySize");
+                auto historySize = historySizePtr != nullptr ? std::strtoul(historySizePtr->value().c_str(), nullptr,10) : 30;
+
+                auto response = request->beginResponseStream("application/json");
+                StaticJsonDocument<1024> doc;
+                auto&& jsonTemperatureObject = doc.createNestedObject();
+                a_temperatureSensor->toJson(jsonTemperatureObject, historySize);
+                serializeJson(doc, *response);
+                request->send(response); });
+
   m_server.begin();
 }
