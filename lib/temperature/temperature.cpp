@@ -50,24 +50,30 @@ void resp32flow::Temperature::_updateHistory()
 void resp32flow::Temperature::toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize) const
 {
   constexpr unsigned int precision = 1;
+  const auto precisionMult = std::pow(10, precision);
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  a_jsonObject["oven"] = round(getOvenTemp() * std::pow(10, precision));
-  a_jsonObject["chip"] = round(getChipTemp() * std::pow(10, precision));
+  a_jsonObject["oven"] = round(getOvenTemp() * precisionMult);
+  a_jsonObject["chip"] = round(getChipTemp() * precisionMult);
   a_jsonObject["historySampleRate"] = m_sampleRate;
   a_jsonObject["precision"] = precision;
 
-  decltype(m_ovenHistory)::index_t historyStartIndex = m_ovenHistory.size() > a_historySize ? m_ovenHistory.size() - a_historySize : 0;
-  auto jsonOvenHistory = a_jsonObject.createNestedArray("ovenHistory");
-  for (decltype(m_ovenHistory)::index_t i = historyStartIndex; i < m_ovenHistory.size(); i++)
+  if (historySize > 0)
   {
-    jsonOvenHistory.add(round(m_ovenHistory[i] * std::pow(10, precision)));
+    decltype(m_ovenHistory)::index_t historyStartIndex = m_ovenHistory.size() > a_historySize ? m_ovenHistory.size() - a_historySize : 0;
+
+    auto jsonOvenHistory = a_jsonObject.createNestedArray("ovenHistory");
+    for (decltype(m_ovenHistory)::index_t i = historyStartIndex; i < m_ovenHistory.size(); i++)
+    {
+      jsonOvenHistory.add(round(m_ovenHistory[i] * precisionMult));
+    }
+
+    auto jsonChipHistory = a_jsonObject.createNestedArray("chipHistory");
+    for (decltype(m_chipHistory)::index_t i = historyStartIndex; i < m_chipHistory.size(); i++)
+    {
+      jsonChipHistory.add(round(m_chipHistory[i] * precisionMult));
+    }
   }
 
-  auto jsonChipHistory = a_jsonObject.createNestedArray("chipHistory");
-  for (decltype(m_chipHistory)::index_t i = historyStartIndex; i < m_chipHistory.size(); i++)
-  {
-    jsonChipHistory.add(round(m_chipHistory[i] * std::pow(10, precision)));
-  }
   xSemaphoreGiveRecursive(m_mutex);
 }
 

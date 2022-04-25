@@ -6,6 +6,8 @@
 .vscode/ipch
 .vscode/extensions.json
 
+lib/webserver/credential.h
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

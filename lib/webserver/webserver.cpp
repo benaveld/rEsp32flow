@@ -11,11 +11,10 @@
 #include <SPIFFS.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <AsyncJson.h>
 #include <temperature.h>
 #include <string>
-
-const char *ssid = "";
-const char *password = "";
+#include "credential.h"
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
@@ -59,13 +58,15 @@ void resp32flow::WebServer::setup(const Temperature *a_temperatureSensor, const 
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
                 auto historySizePtr = request->getParam("historySize");
-                auto historySize = historySizePtr != nullptr ? std::strtoul(historySizePtr->value().c_str(), nullptr,10) : 30;
+                auto historySize = historySizePtr != nullptr ? std::strtoul(historySizePtr->value().c_str(), nullptr,10) : 25;
 
-                auto response = request->beginResponseStream("application/json");
-                StaticJsonDocument<1024> doc;
-                auto&& jsonTemperatureObject = doc.createNestedObject();
+                // I don't understand why it needs to be times 4 to get the size in bytes.
+                auto response = new AsyncJsonResponse(false, (96U + 8U * historySize) * 4U);
+                response->addHeader("Server", "resp32flow web server");
+                auto&& jsonTemperatureObject = response->getRoot(); 
                 a_temperatureSensor->toJson(jsonTemperatureObject, historySize);
-                serializeJson(doc, *response);
+                auto&& responseSize = response->setLength();
+                log_v("temperautre json response size: %i", responseSize * 4);
                 request->send(response); });
 
   m_server.begin();
