@@ -14,6 +14,7 @@
 #include <AsyncJson.h>
 #include <temperatureHistory.h>
 #include <relayController.h>
+#include <profileHandler.h>
 #include <string>
 #include "credential.h"
 
@@ -21,7 +22,7 @@ resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
 }
 
-void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, const RelayController *a_relayController)
+void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, RelayController *a_relayController, ProfileHandler *a_profileHandler)
 {
   if (a_temperatureSensor == nullptr)
     throw std::invalid_argument("a_temperatureSensor can't be pointing to null.");
@@ -77,8 +78,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
               {
     auto response = new AsyncJsonResponse();
     response->addHeader("Server", "resp32flow web server");
-    auto&& jsonTemperatureObject = response->getRoot(); 
-    a_relayController->toJSON(jsonTemperatureObject);
+    a_relayController->toJSON(response->getRoot());
     log_v("relay controller json response size: %u", response->setLength() * 4);
     request->send(response); });
 
@@ -89,6 +89,23 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
       auto p = request->getParam("runProfile", true, false);
       log_i("post request", p->value().c_str());
     } });
+
+  m_server.on("/api/profiles.json", HTTP_GET, [a_profileHandler](AsyncWebServerRequest *request)
+              {
+                AsyncJsonResponse* response {nullptr};
+                if(request->hasParam("id", false, false)){
+                  auto profileId = std::strtoul(request->getParam("id", false, false)->value().c_str(), nullptr, 10);
+                  auto profile = a_profileHandler->find(profileId);
+                  response = new AsyncJsonResponse(); //TODO: calculate the requeued size.
+                  if(profile != a_profileHandler->end()){
+                    profile->second.toJSON(response->getRoot());
+                  }
+                } else {
+                  response = new AsyncJsonResponse(); //TODO: calculate the requeued size.
+                  a_profileHandler->toJson(response->getRoot());
+                }
+                log_v("profile(s) json response size: %u", response->setLength() * 4);
+                request->send(response); });
 
   m_server.begin();
 }
