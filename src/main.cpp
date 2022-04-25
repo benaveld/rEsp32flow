@@ -3,11 +3,13 @@
 #include <webserver.h>
 #include <temperature_max31856.h>
 #include <temperatureHistory.h>
+#include <relayController.h>
 
 using namespace resp32flow;
 
 WebServer webServer{80};
 TemperatureHistory *temperatureHistory{nullptr};
+RelayController *relayController{nullptr};
 
 void setup()
 {
@@ -18,7 +20,9 @@ void setup()
   temperatureHistory = new TemperatureHistory(temperatureSensor);
   temperatureHistory->begin();
 
-  webServer.setup(temperatureHistory, nullptr);
+  relayController = new RelayController(32, temperatureSensor);
+
+  webServer.setup(temperatureHistory, relayController);
 
   log_v("setup done");
 }

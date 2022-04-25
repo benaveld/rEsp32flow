@@ -1,5 +1,8 @@
 #include "relayController.h"
 
+#include <profile.h>
+#include <temperatureSensorI.h>
+
 void controllerLoop(void *parameter)
 {
   auto controller = (resp32flow::RelayController *)parameter;
@@ -23,6 +26,7 @@ resp32flow::RelayController::~RelayController()
   if (m_taskHandler != nullptr)
   {
     vTaskDelete(m_taskHandler);
+    digitalWrite(m_relayPin, LOW);
   }
 }
 
@@ -147,12 +151,4 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
     jsonPid["setPoint"] = m_setPoint;
   }
   xSemaphoreGiveRecursive(m_mutex);
-}
-
-void resp32flow::RelayController::fromJSON(ArduinoJson::JsonObject a_jsonObject)
-{
-  if (a_jsonObject.containsKey("isOn") && !a_jsonObject["isOn"].as<bool>())
-  {
-    stop();
-  }
 }

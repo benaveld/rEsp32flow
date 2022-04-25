@@ -2,14 +2,15 @@
 
 #include <Arduino.h>
 #include <PID_v2.h>
-#include <ReactESP.h>
 #include <myTypes.h>
-#include <profile.h>
-#include <temperatureSensorI.h>
 #include <ArduinoJson.h>
 
 namespace resp32flow
 {
+  class TemperatureSensorI;
+  class Profile;
+  class ProfileStep;
+
   class RelayController
   {
   private:
@@ -17,24 +18,24 @@ namespace resp32flow
     constexpr static UBaseType_t TASK_PRIORITY = 10;
 
     const uint8_t m_relayPin;
-    TemperatureSensorI *m_temperatureSensor;
-    const Profile *m_selectedProfile = nullptr;
-    SemaphoreHandle_t m_mutex;
-    TaskHandle_t m_taskHandler = nullptr;
+    TemperatureSensorI *m_temperatureSensor{nullptr};
+    const Profile *m_selectedProfile{nullptr};
+    TaskHandle_t m_taskHandler{nullptr};
     PID m_pid;
+    SemaphoreHandle_t m_mutex;
 
     size_t m_profileStep = 0;
     time_t m_stepStartTime = 0;
     double m_relayOnTime = 0; // linked into pid output
-    double m_ovenTemp;        // input to pid
-    double m_setPoint;        // setPoint for pid
+    double m_ovenTemp = 0;    // input to pid
+    double m_setPoint = 0;    // setPoint for pid
     double m_sampleRate = 5000;
 
     void setupProfileStep();
 
   public:
     RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor);
-    ~RelayController(); 
+    ~RelayController();
     void start(const Profile &a_profile);
     void stop();
     void tick();
@@ -44,6 +45,5 @@ namespace resp32flow
     resp32flow::time_t getStepTimer() const;
 
     void toJSON(ArduinoJson::JsonObject a_jsonObject) const;
-    void fromJSON(ArduinoJson::JsonObject a_jsonObject);
   };
 } // namespace reflow

@@ -13,6 +13,7 @@
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
 #include <temperatureHistory.h>
+#include <relayController.h>
 #include <string>
 #include "credential.h"
 
@@ -23,7 +24,10 @@ resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, const RelayController *a_relayController)
 {
   if (a_temperatureSensor == nullptr)
-    throw std::invalid_argument("a_temperatureSensor can't point to null.");
+    throw std::invalid_argument("a_temperatureSensor can't be pointing to null.");
+
+  if (a_relayController == nullptr)
+    throw std::invalid_argument("a_relayController can't be pointing to null.");
 
   if (!SPIFFS.begin())
   {
@@ -66,8 +70,25 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
                 auto&& jsonTemperatureObject = response->getRoot(); 
                 a_temperatureSensor->toJson(jsonTemperatureObject, historySize);
                 auto&& responseSize = response->setLength();
-                log_v("temperautre json response size: %i", responseSize * 4);
+                log_v("temperautre json response size: %u", responseSize * 4);
                 request->send(response); });
+
+  m_server.on("/api/controller.json", HTTP_GET, [a_relayController](AsyncWebServerRequest *request)
+              {
+    auto response = new AsyncJsonResponse();
+    response->addHeader("Server", "resp32flow web server");
+    auto&& jsonTemperatureObject = response->getRoot(); 
+    a_relayController->toJSON(jsonTemperatureObject);
+    log_v("relay controller json response size: %u", response->setLength() * 4);
+    request->send(response); });
+
+  m_server.on("/api/controller", HTTP_POST, [a_relayController](AsyncWebServerRequest *request)
+              {
+    if(request->hasParam("runProfile", true, false))
+    {
+      auto p = request->getParam("runProfile", true, false);
+      log_i("post request", p->value().c_str());
+    } });
 
   m_server.begin();
 }
