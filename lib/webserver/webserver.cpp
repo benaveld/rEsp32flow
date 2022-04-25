@@ -12,7 +12,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
-#include <temperature.h>
+#include <temperatureHistory.h>
 #include <string>
 #include "credential.h"
 
@@ -20,7 +20,7 @@ resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
 }
 
-void resp32flow::WebServer::setup(const Temperature *a_temperatureSensor, const RelayController *a_relayController)
+void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, const RelayController *a_relayController)
 {
   if (a_temperatureSensor == nullptr)
     throw std::invalid_argument("a_temperatureSensor can't point to null.");

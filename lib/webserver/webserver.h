@@ -3,7 +3,7 @@
 
 namespace resp32flow
 {
-  class Temperature;
+  class TemperatureHistory;
   class RelayController;
 
   class WebServer
@@ -13,6 +13,6 @@ namespace resp32flow
 
   public:
     WebServer(uint16_t a_port);
-    void setup(const Temperature *a_temperatureSensor, const RelayController *a_relayController);
+    void setup(const TemperatureHistory *a_temperatureSensor, const RelayController *a_relayController);
   };
 }

@@ -3,7 +3,10 @@
 void controllerLoop(void *parameter)
 {
   auto controller = (resp32flow::RelayController *)parameter;
-  controller->tick();
+  for (;;)
+  {
+    controller->tick();
+  }
 }
 
 resp32flow::RelayController::RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor)
@@ -12,6 +15,7 @@ resp32flow::RelayController::RelayController(decltype(m_relayPin) a_relayPin, de
       m_pid(&m_ovenTemp, &m_relayOnTime, &m_setPoint, 0, 0, 0, PID::Direction::Direct),
       m_mutex(xSemaphoreCreateRecursiveMutex())
 {
+  assert(a_temperatureSensor != nullptr);
 }
 
 resp32flow::RelayController::~RelayController()
@@ -31,14 +35,14 @@ void resp32flow::RelayController::start(const Profile &a_profile)
   m_selectedProfile = &a_profile;
   m_profileStep = 0;
   setupProfileStep();
-  m_ovenTemp = m_temperatureSensor.getOvenTemp();
+  m_ovenTemp = m_temperatureSensor->getOvenTemp();
   m_relayOnTime = 0;
   m_setPoint = 100;
   m_pid.SetOutputLimits(0, m_sampleRate);
   m_pid.SetMode(PID::Automatic);
   xSemaphoreGiveRecursive(m_mutex);
 
-  xTaskCreate(controllerLoop, "RelayController loop", 1024, this, 1, &m_taskHandler);
+  xTaskCreate(controllerLoop, "RelayController loop", 1024, this, TASK_PRIORITY, &m_taskHandler);
 }
 
 void resp32flow::RelayController::stop()
@@ -71,7 +75,7 @@ void resp32flow::RelayController::tick()
     return;
   }
 
-  auto ovenTemp = m_temperatureSensor.getOvenTemp();
+  auto ovenTemp = m_temperatureSensor->getOvenTemp();
   auto stepTime = getStepTimer();
   auto &&step = getCurrentProfileStep();
   if (step->targetTemp <= ovenTemp && step->timer <= stepTime)

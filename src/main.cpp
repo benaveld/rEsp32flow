@@ -2,22 +2,25 @@
 #include <Wire.h>
 #include <webserver.h>
 #include <temperature_max31856.h>
+#include <temperatureHistory.h>
 
-  using namespace resp32flow;
+using namespace resp32flow;
 
-TemperatureMAX31856 temperatureSensor;
-WebServer webServer(80);
-
-TaskHandle_t task;
+WebServer webServer{80};
+TemperatureHistory *temperatureHistory{nullptr};
 
 void setup()
 {
   Serial.begin(115200);
 
-  log_i("setup");
-  webServer.setup(&temperatureSensor, nullptr);
-  temperatureSensor.begin();
-  log_i("setup done");
+  auto temperatureSensor = TemperatureMAX31856::getInstance();
+  temperatureSensor->begin();
+  temperatureHistory = new TemperatureHistory(temperatureSensor);
+  temperatureHistory->begin();
+
+  webServer.setup(temperatureHistory, nullptr);
+
+  log_v("setup done");
 }
 
 void loop()

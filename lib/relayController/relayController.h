@@ -5,7 +5,7 @@
 #include <ReactESP.h>
 #include <myTypes.h>
 #include <profile.h>
-#include <temperature.h>
+#include <temperatureSensorI.h>
 #include <ArduinoJson.h>
 
 namespace resp32flow
@@ -14,9 +14,10 @@ namespace resp32flow
   {
   private:
     constexpr static TickType_t MUTEX_BLOCK_DELAY = 10.0 / portTICK_PERIOD_MS; // 10ms
+    constexpr static UBaseType_t TASK_PRIORITY = 10;
 
     const uint8_t m_relayPin;
-    const Temperature &m_temperatureSensor;
+    TemperatureSensorI *m_temperatureSensor;
     const Profile *m_selectedProfile = nullptr;
     SemaphoreHandle_t m_mutex;
     TaskHandle_t m_taskHandler = nullptr;

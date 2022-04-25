@@ -1,14 +1,14 @@
 #pragma once
 
-#include <temperature.h>
+#include <temperatureSensorI.h>
 
 namespace resp32flow
 {
-  class TemperatureDummy : public Temperature
+  class TemperatureDummy : public TemperatureSensorI
   {
   public:
-    virtual temp_t getOvenTemp() const override;
-    virtual temp_t getChipTemp() const override;
-    virtual uint8_t getFault() const override;
+    virtual temp_t getOvenTemp() override;
+    virtual temp_t getChipTemp() override;
+    virtual fault_t getFault() override;
   };
 }
