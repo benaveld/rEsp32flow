@@ -16,6 +16,7 @@
 #include <relayController.h>
 #include <profileHandler.h>
 #include <string>
+#include <ESPmDNS.h>
 #include "credential.h"
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
@@ -53,6 +54,17 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
 
   log_i("local IP: %s", WiFi.localIP().toString().c_str());
 
+  if (!MDNS.begin("resp32flow"))
+  {
+    log_e("Error starting mDNS");
+    while (1)
+    {
+      delay(1000);
+    }
+  }
+
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+
   m_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/index.html", "text/html"); });
 
@@ -62,14 +74,15 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
 
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
-                auto historySizePtr = request->getParam("historySize");
-                auto historySize = historySizePtr != nullptr ? std::strtoul(historySizePtr->value().c_str(), nullptr,10) : 25;
+                size_t historySize = 25;
+                if(request->hasParam("historySize")){
+                  historySize = std::strtoul(request->getParam("historySize")->value().c_str(), nullptr, 10);
+                }
 
                 // I don't understand why it needs to be times 4 to get the size in bytes.
                 auto response = new AsyncJsonResponse(false, (96U + 8U * historySize) * 4U);
                 response->addHeader("Server", "resp32flow web server");
-                auto&& jsonTemperatureObject = response->getRoot(); 
-                a_temperatureSensor->toJson(jsonTemperatureObject, historySize);
+                a_temperatureSensor->toJson(response->getRoot(), historySize);
                 auto&& responseSize = response->setLength();
                 log_v("temperautre json response size: %u", responseSize * 4);
                 request->send(response); });
@@ -96,16 +109,17 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
                 if(request->hasParam("id", false, false)){
                   auto profileId = std::strtoul(request->getParam("id", false, false)->value().c_str(), nullptr, 10);
                   auto profile = a_profileHandler->find(profileId);
-                  response = new AsyncJsonResponse(); //TODO: calculate the requeued size.
+                  response = new AsyncJsonResponse(false); //TODO: calculate the requeued size.
                   if(profile != a_profileHandler->end()){
                     profile->second.toJSON(response->getRoot());
                   }
                 } else {
-                  response = new AsyncJsonResponse(); //TODO: calculate the requeued size.
+                  response = new AsyncJsonResponse(true); //TODO: calculate the requeued size.
                   a_profileHandler->toJson(response->getRoot());
                 }
                 log_v("profile(s) json response size: %u", response->setLength() * 4);
                 request->send(response); });
 
   m_server.begin();
+  MDNS.addService("http", "tcp", 80);
 }

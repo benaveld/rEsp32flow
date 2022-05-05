@@ -29,7 +29,7 @@ namespace resp32flow
     double m_relayOnTime = 0; // linked into pid output
     double m_ovenTemp = 0;    // input to pid
     double m_setPoint = 0;    // setPoint for pid
-    double m_sampleRate = 5000;
+    double m_sampleRate = 20000; // in ms
 
     void setupProfileStep();
 
@@ -43,6 +43,9 @@ namespace resp32flow
     decltype(m_selectedProfile) getCurentProfile() const;
     const resp32flow::ProfileStep *getCurrentProfileStep() const;
     resp32flow::time_t getStepTimer() const;
+    decltype(m_sampleRate) getSampleRate() const;
+    bool setSampleRate(decltype(m_sampleRate));
+    bool isOn() const;
 
     void toJSON(ArduinoJson::JsonObject a_jsonObject) const;
   };

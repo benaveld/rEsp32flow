@@ -114,8 +114,9 @@ auto resp32flow::RelayController::getCurentProfile() const -> decltype(m_selecte
 const resp32flow::ProfileStep *resp32flow::RelayController::getCurrentProfileStep() const
 {
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  if (m_selectedProfile == nullptr)
+  if (!isOn())
     return nullptr;
+
   decltype(getCurrentProfileStep()) stepPtr = nullptr;
   if (m_profileStep < m_selectedProfile->steps.size())
     stepPtr = &m_selectedProfile->steps[m_profileStep];
@@ -127,7 +128,7 @@ resp32flow::time_t resp32flow::RelayController::getStepTimer() const
 {
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
   auto stepTime = 0;
-  if (m_selectedProfile != nullptr)
+  if (isOn())
     stepTime = millis() - m_stepStartTime;
   xSemaphoreGiveRecursive(m_mutex);
   return stepTime;
@@ -138,7 +139,7 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
   a_jsonObject["isOn"] = m_selectedProfile != nullptr;
   a_jsonObject["sampleRate"] = m_sampleRate;
-  if (m_selectedProfile != nullptr)
+  if (isOn())
   {
     a_jsonObject["profileId"] = m_selectedProfile->id;
     a_jsonObject["profileStepIndex"] = m_profileStep;
@@ -151,4 +152,23 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
     jsonPid["setPoint"] = m_setPoint;
   }
   xSemaphoreGiveRecursive(m_mutex);
+}
+
+bool resp32flow::RelayController::setSampleRate(decltype(m_sampleRate) a_sampleRate)
+{
+  if(isOn())
+    return false;
+  
+  m_sampleRate = a_sampleRate;
+  return true;
+}
+
+auto resp32flow::RelayController::getSampleRate() const -> decltype(m_sampleRate)
+{
+  return m_sampleRate;
+}
+
+bool resp32flow::RelayController::isOn() const
+{
+  return m_selectedProfile != nullptr;
 }
