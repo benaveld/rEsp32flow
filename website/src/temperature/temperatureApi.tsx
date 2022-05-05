@@ -1,4 +1,4 @@
-const baseUrl = "http://192.168.1.69";
+import { baseUrl } from "../config";
 const url = baseUrl + "/api/temperature.json";
 
 const TemperatureApi = {

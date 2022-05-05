@@ -1,0 +1,1 @@
+export const baseUrl = "http://resp32flow.local";
