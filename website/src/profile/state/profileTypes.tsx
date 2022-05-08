@@ -16,9 +16,7 @@ interface LoadProfileRequest {
 
 interface LoadProfileSuccess {
   type: typeof LOAD_PROFILE_SUCCESS;
-  payload: {
-    profiles: Profile[];
-  };
+  payload: Profile[];
 }
 
 interface LoadProfileFailure {

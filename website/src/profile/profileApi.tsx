@@ -5,7 +5,7 @@ import { ProfileStep } from "./profileStep";
 const url = baseUrl + "/api/profiles.json";
 
 const ProfileApi = {
-  async get() : Promise<Profile[] | Error>{
+  async get(): Promise<Profile[] | Error> {
     const response = await fetch(url, { mode: "cors" });
     if (response.ok) return await response.json();
     return new Error(response.statusText);
@@ -19,10 +19,16 @@ const ProfileApi = {
 
     const response = await fetch(requestUrl, {
       method: "PUT",
-      body: JSON.stringify(step !== undefined ? profile : step),
+      body: JSON.stringify(step === undefined ? profile : step),
       headers: { "Content-Type": "application/json" },
+      mode: "cors",
     });
-    if (response.ok) return await response.json();
+
+    if (step !== undefined) {
+      profile.steps[step.id] = step;
+    }
+
+    if (response.ok) return profile;
     return new Error(response.statusText);
   },
 
@@ -34,6 +40,7 @@ const ProfileApi = {
 
     const response = await fetch(requestUrl, {
       method: "DELETE",
+      mode: "cors",
     });
     if (response.ok) return await response.json();
     return new Error(response.statusText);

@@ -8,13 +8,14 @@ import {
   DialogTitle,
   IconButton,
   TextField,
+  Typography,
 } from "@mui/material";
-import { Dispatch, useState } from "react";
+import { Dispatch, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { AppState } from "../state";
 import { getUniqId, Profile, ProfileForm } from "./profile";
-import { saveProfile } from "./state/profileActions";
+import { loadProfiles, saveProfile } from "./state/profileActions";
 
 export default function ProfileList() {
   const [open, setOpen] = useState(false);
@@ -23,6 +24,9 @@ export default function ProfileList() {
 
   const profiles = useSelector(
     (appState: AppState) => appState.profileState.profiles
+  );
+  const errorInfo = useSelector(
+    (appState: AppState) => appState.profileState.error
   );
 
   const handleClickOpen = () => {
@@ -46,11 +50,16 @@ export default function ProfileList() {
     setNewProfileName(event.target.value);
   };
 
+  useEffect(() => {
+    dispatch(loadProfiles());
+  }, [dispatch])
+
   return (
     <Box>
       <IconButton aria-label="add" onClick={handleClickOpen}>
         <Add />
       </IconButton>
+      <Typography>{errorInfo}</Typography>
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Profile name</DialogTitle>
@@ -73,7 +82,7 @@ export default function ProfileList() {
       </Dialog>
 
       {profiles.map((value) => (
-        <ProfileForm profile={value} />
+        <ProfileForm key={value.id} profile={value} />
       ))}
     </Box>
   );

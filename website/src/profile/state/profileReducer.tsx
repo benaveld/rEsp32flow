@@ -1,3 +1,4 @@
+import { merge } from "../../myUtils";
 import { Profile } from "../profile";
 import {
   DELETE_PROFILE_FAILURE,
@@ -31,7 +32,7 @@ export function ProfileReducer(
       return {
         ...state,
         loading: false,
-        profiles: action.payload.profiles,
+        profiles: action.payload,
         error: undefined,
       };
 
@@ -49,12 +50,21 @@ export function ProfileReducer(
       };
 
     case SAVE_PROFILE_SUCCESS:
+      const id = state.profiles.findIndex(
+        (value) => value.id === action.payload.id
+      );
+
+      let updatedProfiles = state.profiles;
+      if (id >= 0) {
+        updatedProfiles[id] = action.payload;
+      } else {
+        updatedProfiles = merge([updatedProfiles, [action.payload]]);
+      }
+
       return {
         ...state,
         loading: false,
-        profiles: state.profiles.map((value) =>
-          action.payload.id === value.id ? action.payload : value
-        ),
+        profiles: updatedProfiles,
         error: undefined,
       };
 

@@ -65,6 +65,18 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   }
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  // Respondeds to CORS pre-flight requests.
+  m_server.onNotFound([](AsyncWebServerRequest *request)
+                      {
+  if (request->method() == HTTP_OPTIONS) {
+    auto response = request->beginResponse(200);
+    response->addHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+    response->addHeader("Access-Control-Max-Age", "600"); // Cache results of a preflight request for 10 minutes
+    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+    request->send(response);
+  } else {
+    request->send(404);
+  } });
 
   m_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/index.html", "text/html"); });
