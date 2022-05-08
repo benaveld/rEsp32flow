@@ -85,21 +85,24 @@ const TemperatureChart = () => {
   }, [dispatch, sampleRate]);
 
   const data = {
-    labels: ovenTemperatureHistory.map((value, index, array) =>
-      (array.length - index).toString()
-    ),
+    labels: ovenTemperatureHistory.map((value, index, array) => {
+      const totalSeconds: number = array.length - index;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return minutes + ":" + seconds.toString().padStart(2, "0");
+    }),
     datasets: [
       {
         label: "Oven",
         data: ovenTemperatureHistory,
-        pointStyle: 'cross',
+        pointStyle: "cross",
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
       {
         label: "Chip",
         data: chipTemperatureHistory,
-        pointStyle: 'cross',
+        pointStyle: "cross",
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
       },

@@ -18,6 +18,7 @@
 #include <string>
 #include <ESPmDNS.h>
 #include "credential.h"
+#include "handleProfile.h"
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
@@ -79,12 +80,10 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
                   historySize = std::strtoul(request->getParam("historySize")->value().c_str(), nullptr, 10);
                 }
 
-                // I don't understand why it needs to be times 4 to get the size in bytes.
                 auto response = new AsyncJsonResponse(false, (96U + 8U * historySize) * 4U);
                 response->addHeader("Server", "resp32flow web server");
                 a_temperatureSensor->toJson(response->getRoot(), historySize);
-                auto&& responseSize = response->setLength();
-                log_v("temperautre json response size: %u", responseSize * 4);
+                response->setLength();
                 request->send(response); });
 
   m_server.on("/api/controller.json", HTTP_GET, [a_relayController](AsyncWebServerRequest *request)
@@ -92,7 +91,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
     auto response = new AsyncJsonResponse();
     response->addHeader("Server", "resp32flow web server");
     a_relayController->toJSON(response->getRoot());
-    log_v("relay controller json response size: %u", response->setLength() * 4);
+    response->setLength();
     request->send(response); });
 
   m_server.on("/api/controller", HTTP_POST, [a_relayController](AsyncWebServerRequest *request)
@@ -104,21 +103,15 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
     } });
 
   m_server.on("/api/profiles.json", HTTP_GET, [a_profileHandler](AsyncWebServerRequest *request)
-              {
-                AsyncJsonResponse* response {nullptr};
-                if(request->hasParam("id", false, false)){
-                  auto profileId = std::strtoul(request->getParam("id", false, false)->value().c_str(), nullptr, 10);
-                  auto profile = a_profileHandler->find(profileId);
-                  response = new AsyncJsonResponse(false); //TODO: calculate the requeued size.
-                  if(profile != a_profileHandler->end()){
-                    profile->second.toJSON(response->getRoot());
-                  }
-                } else {
-                  response = new AsyncJsonResponse(true); //TODO: calculate the requeued size.
-                  a_profileHandler->toJson(response->getRoot());
-                }
-                log_v("profile(s) json response size: %u", response->setLength() * 4);
-                request->send(response); });
+              { resp32flow::webserver::profile::handleProfile(*a_profileHandler, request); });
+  m_server.on("/api/profiles.json", HTTP_DELETE, [a_profileHandler](AsyncWebServerRequest *request)
+              { resp32flow::webserver::profile::handleProfile(*a_profileHandler, request); });
+
+  auto profileJsonHandler = new AsyncCallbackJsonWebHandler(
+      "/api/profiles.json", [a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
+      { resp32flow::webserver::profile::handleJsonProfile(*a_profileHandler, request, json); },
+      1024U);
+  m_server.addHandler(profileJsonHandler);
 
   m_server.begin();
   MDNS.addService("http", "tcp", 80);

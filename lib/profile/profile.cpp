@@ -18,11 +18,16 @@ void resp32flow::ProfileStep::toJSON(ArduinoJson::JsonObject a_jsonObject) const
   a_jsonObject["timer"] = timer;
 }
 
+resp32flow::Profile::Profile(int a_id) : name("no name"), id(a_id)
+{
+}
+
 resp32flow::Profile::Profile(ArduinoJson::JsonObjectConst a_json)
     : name(a_json["name"].as<std::string>()),
       id(a_json["id"])
 {
-  for(auto step : a_json["steps"].as<JsonArrayConst>()){
+  for (auto step : a_json["steps"].as<JsonArrayConst>())
+  {
     steps.emplace_back(step.as<JsonObjectConst>());
   }
 }

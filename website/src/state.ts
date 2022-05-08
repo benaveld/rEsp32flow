@@ -3,10 +3,19 @@ import ReduxThunk from "redux-thunk";
 import { composeWithDevTools } from "@redux-devtools/extension";
 import { combineReducers } from "redux";
 import { TemperatureState } from "./temperature/state/temperatureTypes";
-import { initialTemperatureState, TemperatureReducer } from "./temperature/state/temperatureReducer";
+import {
+  initialTemperatureState,
+  TemperatureReducer,
+} from "./temperature/state/temperatureReducer";
+import {
+  initialProfileState,
+  ProfileReducer,
+} from "./profile/state/profileReducer";
+import { ProfileState } from "./profile/state/profileTypes";
 
 const reducer = combineReducers({
-  temperatureState: TemperatureReducer
+  temperatureState: TemperatureReducer,
+  profileState: ProfileReducer,
 });
 
 export default function configureStore(preloadedState: any) {
@@ -20,10 +29,12 @@ export default function configureStore(preloadedState: any) {
 
 export interface AppState {
   temperatureState: TemperatureState;
+  profileState: ProfileState;
 }
 
 export const initialAppState: AppState = {
-  temperatureState: initialTemperatureState
+  temperatureState: initialTemperatureState,
+  profileState: initialProfileState,
 };
 
 export const store = configureStore(initialAppState);

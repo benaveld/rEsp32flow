@@ -7,6 +7,8 @@ import {
   TemperatureTypes,
 } from "./temperatureTypes";
 
+const maxHistoryLength = 60*5;
+
 export const initialTemperatureState: TemperatureState = {
   loading: false,
   oven: 0,
@@ -25,18 +27,18 @@ export function TemperatureReducer(
 ) {
   switch (action.type) {
     case LOAD_TEMPERATURE_REQUEST:
-      return { ...state, loading: true, error: undefined };
+      return { ...state, loading: true };
 
     case LOAD_TEMPERATURE_SUCCESS:
       const { oven, chip } = action.payload;
       const ovenHistory = merge([
         state.ovenHistory,
         action.payload.ovenHistory,
-      ]);
+      ]).slice(-maxHistoryLength);
       const chipHistory = merge([
         state.chipHistory,
         action.payload.chipHistory,
-      ]);
+      ]).slice(-maxHistoryLength);
 
       return {
         ...state,

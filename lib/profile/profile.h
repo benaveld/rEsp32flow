@@ -25,6 +25,7 @@ namespace resp32flow
     std::vector<ProfileStep> steps;
 
     Profile() = default;
+    Profile(int id);
     Profile(ArduinoJson::JsonObjectConst a_jsonObject);
     void toJSON(ArduinoJson::JsonObject a_jsonObject) const;
   };
