@@ -4,6 +4,7 @@ import { Profile } from "../profile";
 import ProfileApi from "../profileApi";
 import { ProfileStep } from "../profileStep";
 import {
+  DELETE_PROFILE_FAILURE,
   DELETE_PROFILE_REQUEST,
   DELETE_PROFILE_SUCCESS,
   LOAD_PROFILE_FAILURE,
@@ -37,12 +38,16 @@ export function loadProfiles(): ThunkAction<
 
 export function saveProfile(
   profile: Profile,
-  step?: ProfileStep
+  step?: ProfileStep,
+  stepIndex?: number
 ): ThunkAction<void, ProfileState, null, Action<string>> {
   return async (dispatch: any) => {
     dispatch({ type: SAVE_PROFILE_REQUEST });
     try {
-      const response = await ProfileApi.put(profile, step);
+      if (stepIndex !== undefined && step !== undefined) {
+        profile.steps[stepIndex] = step;
+      }
+      const response = await ProfileApi.put(profile, step, stepIndex);
       return dispatch({
         type: SAVE_PROFILE_SUCCESS,
         payload: response,
@@ -55,18 +60,18 @@ export function saveProfile(
 
 export function deleteProfile(
   profile: Profile,
-  step?: ProfileStep
+  stepIndex?: number
 ): ThunkAction<void, ProfileState, null, Action<string>> {
   return async (dispatch: any) => {
     dispatch({ type: DELETE_PROFILE_REQUEST });
     try {
-      const response = await ProfileApi.delete(profile, step);
+      const response = await ProfileApi.delete(profile, stepIndex);
       return dispatch({
         type: DELETE_PROFILE_SUCCESS,
-        payload: response,
+        payload: {profileId: profile.id, stepIndex, response},
       });
     } catch (e) {
-      dispatch({ type: DELETE_PROFILE_REQUEST, payload: e });
+      dispatch({ type: DELETE_PROFILE_FAILURE, payload: e });
     }
   };
 }

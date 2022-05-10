@@ -21,7 +21,9 @@ interface LoadProfileSuccess {
 
 interface LoadProfileFailure {
   type: typeof LOAD_PROFILE_FAILURE;
-  payload: string;
+  payload: {
+    message: string;
+  };
 }
 
 interface SaveProfileRequest {
@@ -35,7 +37,9 @@ interface SaveProfileSuccess {
 
 interface SaveProfileFailure {
   type: typeof SAVE_PROFILE_FAILURE;
-  payload: string;
+  payload: {
+    message: string;
+  };
 }
 
 interface DeleteProfileRequest {
@@ -46,13 +50,16 @@ interface DeleteProfileSuccess {
   type: typeof DELETE_PROFILE_SUCCESS;
   payload: {
     profileId: number;
-    stepId: number | undefined;
+    stepIndex: number | undefined;
+    response: any;
   };
 }
 
 interface DeleteProfileFailure {
   type: typeof DELETE_PROFILE_FAILURE;
-  payload: string;
+  payload: {
+    message: string;
+  };
 }
 
 export type ProfileTypes =

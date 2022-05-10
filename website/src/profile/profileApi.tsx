@@ -1,4 +1,5 @@
 import { baseUrl } from "../config";
+import { merge } from "../myUtils";
 import { Profile } from "./profile";
 import { ProfileStep } from "./profileStep";
 
@@ -11,10 +12,10 @@ const ProfileApi = {
     return new Error(response.statusText);
   },
 
-  async put(profile: Profile, step?: ProfileStep) {
+  async put(profile: Profile, step?: ProfileStep, stepIndex?: number) : Promise<Profile | Error> {
     let requestUrl = url + "?id=" + profile.id;
-    if (step !== undefined) {
-      requestUrl += "&stepId=" + step.id;
+    if (step !== undefined && stepIndex !== undefined) {
+      requestUrl += "&stepId=" + stepIndex;
     }
 
     const response = await fetch(requestUrl, {
@@ -24,25 +25,29 @@ const ProfileApi = {
       mode: "cors",
     });
 
-    if (step !== undefined) {
-      profile.steps[step.id] = step;
+    if (step !== undefined && stepIndex !== undefined) {
+      if (stepIndex === profile.steps.length) {
+        profile.steps = merge([profile.steps, [step]]);
+      } else {
+        profile.steps[stepIndex] = step;
+      }
     }
 
     if (response.ok) return profile;
     return new Error(response.statusText);
   },
 
-  async delete(profile: Profile, step?: ProfileStep) {
+  async delete(profile: Profile, stepIndex?: number) {
     let requestUrl = url + "?id=" + profile.id;
-    if (step !== undefined) {
-      requestUrl += "&stepId=" + step.id;
+    if (stepIndex !== undefined) {
+      requestUrl += "&stepId=" + stepIndex;
     }
 
     const response = await fetch(requestUrl, {
       method: "DELETE",
       mode: "cors",
     });
-    if (response.ok) return await response.json();
+    if (response.ok) return null;
     return new Error(response.statusText);
   },
 };

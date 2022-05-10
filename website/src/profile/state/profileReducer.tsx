@@ -40,7 +40,7 @@ export function ProfileReducer(
       return {
         ...state,
         loading: false,
-        error: action.payload,
+        error: action.payload.message,
       };
 
     case SAVE_PROFILE_REQUEST:
@@ -72,7 +72,7 @@ export function ProfileReducer(
       return {
         ...state,
         loading: false,
-        error: action.payload,
+        error: action.payload.message,
       };
 
     case DELETE_PROFILE_REQUEST:
@@ -83,7 +83,7 @@ export function ProfileReducer(
 
     case DELETE_PROFILE_SUCCESS:
       let profiles: Profile[];
-      if (action.payload.stepId === undefined) {
+      if (action.payload.stepIndex === undefined) {
         profiles = state.profiles.filter(
           (value) => value.id !== action.payload.profileId
         );
@@ -92,7 +92,7 @@ export function ProfileReducer(
           (value) => value.id === action.payload.profileId
         );
         newProfile!.steps = newProfile!.steps.filter(
-          (value) => value.id !== action.payload.stepId
+          (value, index) => index !== action.payload.stepIndex
         );
         profiles = state.profiles.map((value) =>
           value.id === newProfile!.id ? newProfile! : value
@@ -101,7 +101,7 @@ export function ProfileReducer(
       return {
         ...state,
         loading: false,
-        profiles,
+        profiles: profiles,
         error: undefined,
       };
 
@@ -109,7 +109,7 @@ export function ProfileReducer(
       return {
         ...state,
         loading: false,
-        error: action.payload,
+        error: action.payload.message,
       };
 
     default:

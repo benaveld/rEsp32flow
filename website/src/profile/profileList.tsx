@@ -14,7 +14,8 @@ import { Dispatch, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { AppState } from "../state";
-import { getUniqId, Profile, ProfileForm } from "./profile";
+import { getUniqId, Profile } from "./profile";
+import { ProfileView } from "./profileView";
 import { loadProfiles, saveProfile } from "./state/profileActions";
 
 export default function ProfileList() {
@@ -52,14 +53,14 @@ export default function ProfileList() {
 
   useEffect(() => {
     dispatch(loadProfiles());
-  }, [dispatch])
+  }, [dispatch]);
 
   return (
     <Box>
       <IconButton aria-label="add" onClick={handleClickOpen}>
         <Add />
       </IconButton>
-      <Typography>{errorInfo}</Typography>
+      {errorInfo !== undefined && <Typography>{errorInfo}</Typography>}
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Profile name</DialogTitle>
@@ -82,7 +83,7 @@ export default function ProfileList() {
       </Dialog>
 
       {profiles.map((value) => (
-        <ProfileForm key={value.id} profile={value} />
+        <ProfileView key={value.id} profile={value} />
       ))}
     </Box>
   );
