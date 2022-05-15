@@ -15,6 +15,7 @@
 		"esbenp.prettier-vscode",
 		"msjsdiag.vscode-react-native",
 		"dbaeumer.vscode-eslint",
-		"KnisterPeter.vscode-github"
+		"KnisterPeter.vscode-github",
+		"streetsidesoftware.code-spell-checker"
 	]
 }

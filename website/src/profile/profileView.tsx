@@ -1,4 +1,4 @@
-import { Add, ExpandMore } from "@mui/icons-material";
+import { Add, Delete, ExpandMore } from "@mui/icons-material";
 import {
   Accordion,
   AccordionActions,
@@ -10,6 +10,7 @@ import {
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Dispatch } from "redux";
+import ConfirmationDialog from "../my-material-ui/confirmationDialog";
 import { merge } from "../myUtils";
 import { Profile } from "./profile";
 import { ProfileStep } from "./profileStep";
@@ -23,6 +24,7 @@ interface ProfileViewProps {
 
 export function ProfileView(props: ProfileViewProps) {
   const [profile, setProfile] = useState(props.profile);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch: Dispatch<any> = useDispatch();
 
   const [editingStepId, setEditingStepId] = useState<React.Key | undefined>(
@@ -45,12 +47,25 @@ export function ProfileView(props: ProfileViewProps) {
 
   const onDeleteStep = (index: number) => {
     dispatch(deleteProfile(profile, index));
-  }
+  };
+
+  const onDeleteProfile = (doDelete: boolean) => {
+    if (doDelete) dispatch(deleteProfile(profile));
+    setDeleteDialogOpen(false);
+  };
 
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Typography>{profile.name}</Typography>
+        <ConfirmationDialog
+          id="delete-profile-dialog"
+          title={"Delete: " + profile.name + "?"}
+          keepMounted
+          open={deleteDialogOpen}
+          onClose={onDeleteProfile}
+          confirmationText="Delete"
+        />
       </AccordionSummary>
 
       <AccordionDetails>
@@ -76,8 +91,14 @@ export function ProfileView(props: ProfileViewProps) {
       </AccordionDetails>
 
       <AccordionActions>
-        <IconButton aria-label="add" onClick={addStep}>
+        <IconButton aria-label="add profile step" onClick={addStep}>
           <Add />
+        </IconButton>
+        <IconButton
+          aria-label="delete profile"
+          onClick={() => setDeleteDialogOpen(true)}
+        >
+          <Delete />
         </IconButton>
       </AccordionActions>
     </Accordion>
