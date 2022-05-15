@@ -1,0 +1,20 @@
+{
+	"name": "rEsp32flow",
+	"dockerComposeFile": "../docker-compose.yml",
+	"service": "resp32flow",
+	"workspaceFolder": "/app",
+	"shutdownAction": "stopCompose",
+
+	"settings": {
+		"platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
+		"platformio-ide.disablePIOHomeStartup": true
+	},
+
+
+	"extensions": [
+		"platformio.platformio-ide",
+		"esbenp.prettier-vscode",
+		"msjsdiag.vscode-react-native",
+		"dbaeumer.vscode-eslint"
+	]
+}
