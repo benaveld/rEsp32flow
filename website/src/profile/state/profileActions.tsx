@@ -31,7 +31,7 @@ export function loadProfiles(): ThunkAction<
         payload: response,
       });
     } catch (e) {
-      dispatch({ type: LOAD_PROFILE_FAILURE, payload: e });
+      return dispatch({ type: LOAD_PROFILE_FAILURE, payload: e });
     }
   };
 }
@@ -53,7 +53,7 @@ export function saveProfile(
         payload: response,
       });
     } catch (e) {
-      dispatch({ type: SAVE_PROFILE_FAILURE, payload: e });
+      return dispatch({ type: SAVE_PROFILE_FAILURE, payload: e });
     }
   };
 }
@@ -71,7 +71,7 @@ export function deleteProfile(
         payload: {profileId: profile.id, stepIndex, response},
       });
     } catch (e) {
-      dispatch({ type: DELETE_PROFILE_FAILURE, payload: e });
+      return dispatch({ type: DELETE_PROFILE_FAILURE, payload: e });
     }
   };
 }

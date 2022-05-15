@@ -80,3 +80,8 @@ void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject
 
   xSemaphoreGiveRecursive(m_mutex);
 }
+
+resp32flow::TemperatureSensorI *resp32flow::TemperatureHistory::getSensor() const
+{
+  return m_sensor;
+}

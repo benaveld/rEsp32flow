@@ -138,18 +138,12 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
 {
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
   a_jsonObject["isOn"] = m_selectedProfile != nullptr;
-  a_jsonObject["sampleRate"] = m_sampleRate;
+  //a_jsonObject["sampleRate"] = m_sampleRate;
   if (isOn())
   {
     a_jsonObject["profileId"] = m_selectedProfile->id;
     a_jsonObject["profileStepIndex"] = m_profileStep;
     a_jsonObject["stepTime"] = getStepTimer();
-
-    auto jsonPid = a_jsonObject.createNestedObject("pid");
-    jsonPid["Kp"] = m_pid.GetKp();
-    jsonPid["Ki"] = m_pid.GetKi();
-    jsonPid["Kd"] = m_pid.GetKd();
-    jsonPid["setPoint"] = m_setPoint;
   }
   xSemaphoreGiveRecursive(m_mutex);
 }

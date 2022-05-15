@@ -9,7 +9,7 @@ namespace resp32flow
 
   namespace webserver
   {
-    namespace profile
+    namespace api
     {
       void handleProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request);
       void handleJsonProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *request, JsonVariant &json);

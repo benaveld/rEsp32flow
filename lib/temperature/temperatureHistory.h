@@ -30,6 +30,7 @@ namespace resp32flow
     virtual void toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize = 30) const;
 
     void _updateHistory();
+    TemperatureSensorI* getSensor() const;
 
   private:
     TaskHandle_t m_taskHandler = nullptr;

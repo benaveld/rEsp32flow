@@ -18,7 +18,9 @@
 #include <string>
 #include <ESPmDNS.h>
 #include "credential.h"
-#include "handleProfile.h"
+#include "profileApi.h"
+#include "respondStatusJson.h"
+#include "relayApi.h"
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
@@ -85,6 +87,9 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   m_server.serveStatic("/favicon.ico", SPIFFS, "/favicon.ico");
   m_server.serveStatic("/asset-manifest.json", SPIFFS, "/asset-manifest.json");
 
+  m_server.on("/api/status.json", HTTP_GET, [a_temperatureSensor, a_relayController](AsyncWebServerRequest *request)
+              { resp32flow::webserver::respondStatusJson(*a_relayController, *(a_temperatureSensor->getSensor()), request); });
+
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
                 size_t historySize = 25;
@@ -93,37 +98,24 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
                 }
 
                 auto response = new AsyncJsonResponse(false, (96U + 8U * historySize) * 4U);
-                response->addHeader("Server", "resp32flow web server");
                 a_temperatureSensor->toJson(response->getRoot(), historySize);
                 response->setLength();
                 request->send(response); });
 
-  m_server.on("/api/controller.json", HTTP_GET, [a_relayController](AsyncWebServerRequest *request)
-              {
-    auto response = new AsyncJsonResponse();
-    response->addHeader("Server", "resp32flow web server");
-    a_relayController->toJSON(response->getRoot());
-    response->setLength();
-    request->send(response); });
-
-  m_server.on("/api/controller", HTTP_POST, [a_relayController](AsyncWebServerRequest *request)
-              {
-    if(request->hasParam("runProfile", true, false))
-    {
-      auto p = request->getParam("runProfile", true, false);
-      log_i("post request", p->value().c_str());
-    } });
-
   m_server.on("/api/profiles.json", HTTP_GET, [a_profileHandler](AsyncWebServerRequest *request)
-              { resp32flow::webserver::profile::handleProfile(*a_profileHandler, request); });
+              { resp32flow::webserver::api::handleProfile(*a_profileHandler, request); });
   m_server.on("/api/profiles.json", HTTP_DELETE, [a_profileHandler](AsyncWebServerRequest *request)
-              { resp32flow::webserver::profile::handleProfile(*a_profileHandler, request); });
+              { resp32flow::webserver::api::handleProfile(*a_profileHandler, request); });
 
   auto profileJsonHandler = new AsyncCallbackJsonWebHandler(
       "/api/profiles.json", [a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
-      { resp32flow::webserver::profile::handleJsonProfile(*a_profileHandler, request, json); },
+      { resp32flow::webserver::api::handleJsonProfile(*a_profileHandler, request, json); },
       1024U);
   m_server.addHandler(profileJsonHandler);
+
+  auto relayApiHandler = new AsyncCallbackJsonWebHandler("/api/relay.json", [a_relayController, a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
+                                                         { resp32flow::webserver::api::handleJsonRelay(*a_relayController, *a_profileHandler, request, json); });
+  m_server.addHandler(relayApiHandler);
 
   m_server.begin();
   MDNS.addService("http", "tcp", 80);

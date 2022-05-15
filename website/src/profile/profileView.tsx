@@ -1,4 +1,4 @@
-import { Add, Delete, ExpandMore } from "@mui/icons-material";
+import { Add, Delete, ExpandMore, Start } from "@mui/icons-material";
 import {
   Accordion,
   AccordionActions,
@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 import { Dispatch } from "redux";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
 import { merge } from "../myUtils";
+import { startRelay } from "../relay/relayActions";
 import { Profile } from "./profile";
 import { ProfileStep } from "./profileStep";
 import { ProfileStepForm } from "./profileStepForm";
@@ -54,6 +55,10 @@ export function ProfileView(props: ProfileViewProps) {
     setDeleteDialogOpen(false);
   };
 
+  const onStartProfile = () => {
+    startRelay(profile.id);
+  }
+
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMore />}>
@@ -91,6 +96,10 @@ export function ProfileView(props: ProfileViewProps) {
       </AccordionDetails>
 
       <AccordionActions>
+        <IconButton aria-label="start profile" onClick={onStartProfile}>
+          <Start/>
+        </IconButton>
+
         <IconButton aria-label="add profile step" onClick={addStep}>
           <Add />
         </IconButton>

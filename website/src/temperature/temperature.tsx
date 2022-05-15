@@ -1,8 +1,7 @@
-import { Dispatch, Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { AppState } from "../state";
-import { loadTemperature } from "./state/temperatureActions";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,14 +24,9 @@ ChartJS.register(
 );
 
 const TemperatureChart = () => {
-  const ovenTemperature = useSelector(
-    (appState: AppState) => appState.temperatureState.oven
-  );
+  /*
   const ovenTemperatureHistory = useSelector(
     (appState: AppState) => appState.temperatureState.ovenHistory
-  );
-  const chipTemperature = useSelector(
-    (appState: AppState) => appState.temperatureState.chip
   );
   const chipTemperatureHistory = useSelector(
     (appState: AppState) => appState.temperatureState.chipHistory
@@ -40,10 +34,18 @@ const TemperatureChart = () => {
   const errorMessage = useSelector(
     (appState: AppState) => appState.temperatureState.error
   );
+  */
 
-  const sampleRate = useSelector(
-    (appState: AppState) => appState.temperatureState.historySampleRate
-  );
+  const oven = useSelector((appState: AppState) => appState.statusState.oven);
+  const chip = useSelector((appState: AppState) => appState.statusState.chip);
+
+  const [ovenTemperatureHistory, setOvenTemperatureHistory] = useState([oven]);
+  const [chipTemperatureHistory, setChipTemperatureHistory] = useState([chip]);
+
+  useEffect(() => {
+    setOvenTemperatureHistory([...ovenTemperatureHistory, oven]);
+    setChipTemperatureHistory([...chipTemperatureHistory, chip]);
+  }, [oven, chip]);
 
   const options = {
     responsive: true,
@@ -71,19 +73,6 @@ const TemperatureChart = () => {
     },
   };
 
-  const dispatch: Dispatch<any> = useDispatch();
-
-  useEffect(() => {
-    dispatch(loadTemperature(120));
-    const interval = setInterval(
-      () => dispatch(loadTemperature(1)),
-      sampleRate
-    );
-    return () => {
-      clearInterval(interval);
-    };
-  }, [dispatch, sampleRate]);
-
   const data = {
     labels: ovenTemperatureHistory.map((value, index, array) => {
       const totalSeconds: number = array.length - index;
@@ -109,14 +98,7 @@ const TemperatureChart = () => {
     ],
   };
 
-  return (
-    <Fragment>
-      <p>Oven: {ovenTemperature}C</p>
-      <p>Chip: {chipTemperature}C</p>
-      {errorMessage && <p>{errorMessage}</p>}
-      <Line options={options} data={data} />
-    </Fragment>
-  );
+  return <Line options={options} data={data} />;
 };
 
 export default TemperatureChart;

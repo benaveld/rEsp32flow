@@ -1,4 +1,4 @@
-#include "handleProfile.h"
+#include "profileApi.h"
 #include <profileHandler.h>
 #include <AsyncJson.h>
 #include <climits>
@@ -78,7 +78,7 @@ static void handleDeleteProfile(resp32flow::ProfileHandler &a_profileHandler, Id
 }
 
 // TODO validate input
-void resp32flow::webserver::profile::handleJsonProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
+void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
 {
   if (a_request->method() != HTTP_PUT)
   {
@@ -138,7 +138,7 @@ void resp32flow::webserver::profile::handleJsonProfile(resp32flow::ProfileHandle
   a_profileHandler.storeProfiles();
 }
 
-void resp32flow::webserver::profile::handleProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request)
+void resp32flow::webserver::api::handleProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request)
 {
   IdProp id{false, 0};
   IdProp stepId{false, 0};
