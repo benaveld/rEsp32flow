@@ -10,11 +10,11 @@
 		"platformio-ide.disablePIOHomeStartup": true
 	},
 
-
 	"extensions": [
 		"platformio.platformio-ide",
 		"esbenp.prettier-vscode",
 		"msjsdiag.vscode-react-native",
-		"dbaeumer.vscode-eslint"
+		"dbaeumer.vscode-eslint",
+		"KnisterPeter.vscode-github"
 	]
 }

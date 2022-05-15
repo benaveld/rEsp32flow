@@ -6,7 +6,7 @@ services:
     build: ./
     volumes:
       - ./:/app:rw
-      - /dev:/dev
+      - /dev:/dev:rw
     tty: true
     device_cgroup_rules:
       - 'c 188:* rwm'
