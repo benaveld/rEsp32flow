@@ -55,7 +55,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
 
   log_i("local IP: %s", WiFi.localIP().toString().c_str());
 
-  if (!MDNS.begin("resp32flow"))
+  if (!MDNS.begin(c_hostname))
   {
     log_e("Error starting mDNS");
     while (1)
@@ -127,4 +127,5 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
 
   m_server.begin();
   MDNS.addService("http", "tcp", 80);
+  log_i("started mDNS on address: http://%s.%s", c_hostname, "local");
 }

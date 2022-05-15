@@ -125,7 +125,7 @@ void resp32flow::webserver::profile::handleJsonProfile(resp32flow::ProfileHandle
     }
     else
     {
-      a_request->send(400, "text/plain", "Step id is outside of profile.");
+      return a_request->send(400, "text/plain", "Step id is outside of profile.");
     }
   }
   else
@@ -135,11 +135,7 @@ void resp32flow::webserver::profile::handleJsonProfile(resp32flow::ProfileHandle
   }
 
   a_request->send(httpResponseCode);
-  /*
-  auto response = new AsyncJsonResponse(false);
-  profile.toJSON(response->getRoot().as<JsonObject>());
-  a_request->send(response);
-  */
+  a_profileHandler.storeProfiles();
 }
 
 void resp32flow::webserver::profile::handleProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request)
