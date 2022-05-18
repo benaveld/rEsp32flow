@@ -8,6 +8,16 @@ void resp32flow::ProfileHandler::toJson(ArduinoJson::JsonArray a_json) const
   }
 }
 
+size_t resp32flow::ProfileHandler::getJsonSize() const
+{
+  decltype(getJsonSize()) expectedJsonSize = 128;
+  for (const auto &profile : *this)
+  {
+    expectedJsonSize += profile.second.getJSONSize();
+  }
+  return expectedJsonSize;
+}
+
 void resp32flow::ProfileHandler::addFromJson(ArduinoJson::JsonArray a_json)
 {
   for (auto jsonProfile : a_json)
@@ -15,7 +25,7 @@ void resp32flow::ProfileHandler::addFromJson(ArduinoJson::JsonArray a_json)
     if (!jsonProfile.containsKey("id") || !jsonProfile.containsKey("name"))
     {
       std::string str;
-      serializeJsonPretty(jsonProfile, str);
+      ArduinoJson::serializeJsonPretty(jsonProfile, str);
       log_w("Skip loading a profile:\n%s\n", str.c_str());
       continue;
     }
@@ -25,13 +35,7 @@ void resp32flow::ProfileHandler::addFromJson(ArduinoJson::JsonArray a_json)
 
 void resp32flow::ProfileHandler::storeProfiles()
 {
-  auto expectedJsonSize = 128;
-  for(const auto& profile : *this)
-  {
-    expectedJsonSize += profile.second.getJSONSize();
-  }
-
-  DynamicJsonDocument doc(expectedJsonSize);
+  DynamicJsonDocument doc(getJsonSize());
   auto jsonArray = doc.createNestedArray("profiles");
   toJson(jsonArray);
 
@@ -46,7 +50,7 @@ void resp32flow::ProfileHandler::storeProfiles()
   m_preferences.end();
 
   String prettyJson;
-  serializeJsonPretty(doc, prettyJson);
+  ArduinoJson::serializeJsonPretty(doc, prettyJson);
   Serial.printf("Storing profiles:\n%s\n", prettyJson.c_str());
 }
 

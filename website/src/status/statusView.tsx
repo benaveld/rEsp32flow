@@ -35,7 +35,7 @@ export default function StatusView() {
         <Card>
           <Typography>Running {runningProfile!.name}</Typography>
           <Button onClick={stopRelay}>Stop</Button>
-          <Typography>Current step</Typography>
+          <Typography>Current step {Math.round(status.stepTime / 1000)}sec</Typography>
           <ProfileStepView
             index={status.profileStepIndex}
             step={runningProfile!.steps[status.profileStepIndex]}

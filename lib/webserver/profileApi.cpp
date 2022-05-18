@@ -17,7 +17,7 @@ static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, IdPro
   if (a_id.valid)
   {
     auto &&profileItr = a_profileHandler->find(a_id.id);
-    response = new AsyncJsonResponse(false); // TODO: calculate the requeued size.
+    response = new AsyncJsonResponse(false, a_profileHandler->getJsonSize()); // TODO: calculate the requeued size.
     if (profileItr != a_profileHandler->end())
     {
       const auto &profile = profileItr->second;
@@ -44,11 +44,10 @@ static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, IdPro
   }
   else
   {
-    response = new AsyncJsonResponse(true); // TODO: calculate the requeued size.
+    response = new AsyncJsonResponse(true, a_profileHandler->getJsonSize()); // TODO: calculate the requeued size.
     a_profileHandler->toJson(response->getRoot());
   }
 
-  log_v("profile(s) json response size: %u", response->setLength());
   a_request->send(response);
 }
 

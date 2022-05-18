@@ -14,6 +14,7 @@ namespace resp32flow
     void addFromJson(ArduinoJson::JsonArray a_json);
     void storeProfiles();
     void loadProfiles();
+    size_t getJsonSize() const;
 
   private:
     constexpr static auto fileNamespace = "profile"; 
