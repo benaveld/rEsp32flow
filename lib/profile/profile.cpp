@@ -1,6 +1,6 @@
 #include "profile.h"
 
-resp32flow::ProfileStep::ProfileStep(ArduinoJson::JsonObjectConst a_jsonObject)
+resp32flow::ProfileStep::ProfileStep(ArduinoJson::JsonVariant a_jsonObject)
     : Kp(a_jsonObject["Kp"]),
       Ki(a_jsonObject["Ki"]),
       Kd(a_jsonObject["Kd"]),
@@ -22,13 +22,14 @@ resp32flow::Profile::Profile(int a_id) : name("no name"), id(a_id)
 {
 }
 
-resp32flow::Profile::Profile(ArduinoJson::JsonObjectConst a_json)
+resp32flow::Profile::Profile(ArduinoJson::JsonVariant a_json)
     : name(a_json["name"].as<std::string>()),
       id(a_json["id"])
 {
-  for (auto step : a_json["steps"].as<JsonArrayConst>())
+  JsonArray jsonSteps = a_json["steps"];
+  for (const auto& step : jsonSteps)
   {
-    steps.emplace_back(step.as<JsonObjectConst>());
+    steps.emplace_back(step);
   }
 }
 
@@ -39,7 +40,11 @@ void resp32flow::Profile::toJSON(ArduinoJson::JsonObject a_jsonObject) const
   auto jsonSteps = a_jsonObject.createNestedArray("steps");
   for (const auto &step : steps)
   {
-    auto jsonStep = jsonSteps.createNestedObject();
-    step.toJSON(jsonStep);
+    step.toJSON(jsonSteps.createNestedObject());
   }
+}
+
+size_t resp32flow::Profile::getJSONSize() const
+{
+  return 128 + steps.size() * ProfileStep::JSON_SIZE;
 }

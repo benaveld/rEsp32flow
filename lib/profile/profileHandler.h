@@ -11,7 +11,7 @@ namespace resp32flow
   {
   public:
     void toJson(ArduinoJson::JsonArray a_json) const;
-    void addFromJson(ArduinoJson::JsonArrayConst a_json);
+    void addFromJson(ArduinoJson::JsonArray a_json);
     void storeProfiles();
     void loadProfiles();
 

@@ -9,12 +9,13 @@ namespace resp32flow
 {
   struct ProfileStep
   {
+    static constexpr auto JSON_SIZE = 128;
     double Kp, Ki, Kd;
     resp32flow::temp_t targetTemp;
     resp32flow::time_t timer;
 
     ProfileStep() = default;
-    ProfileStep(ArduinoJson::JsonObjectConst a_json);
+    ProfileStep(ArduinoJson::JsonVariant a_json);
     void toJSON(ArduinoJson::JsonObject a_jsonObject) const;
   };
 
@@ -26,7 +27,8 @@ namespace resp32flow
 
     Profile() = default;
     Profile(int id);
-    Profile(ArduinoJson::JsonObjectConst a_jsonObject);
+    Profile(ArduinoJson::JsonVariant a_jsonObject);
     void toJSON(ArduinoJson::JsonObject a_jsonObject) const;
+    size_t getJSONSize() const;
   };
 }

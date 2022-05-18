@@ -8,35 +8,59 @@ void resp32flow::ProfileHandler::toJson(ArduinoJson::JsonArray a_json) const
   }
 }
 
-void resp32flow::ProfileHandler::addFromJson(ArduinoJson::JsonArrayConst a_json)
+void resp32flow::ProfileHandler::addFromJson(ArduinoJson::JsonArray a_json)
 {
-  for (const auto &jsonProfile : a_json)
+  for (auto jsonProfile : a_json)
   {
-    auto &&id = std::strtol(jsonProfile["id"], nullptr, 10);
-    emplace(id, jsonProfile.as<ArduinoJson::JsonObjectConst>());
+    if (!jsonProfile.containsKey("id") || !jsonProfile.containsKey("name"))
+    {
+      std::string str;
+      serializeJsonPretty(jsonProfile, str);
+      log_w("Skip loading a profile:\n%s\n", str.c_str());
+      continue;
+    }
+    emplace(jsonProfile["id"], jsonProfile);
   }
 }
 
 void resp32flow::ProfileHandler::storeProfiles()
 {
-  DynamicJsonDocument doc(1024);
-  toJson(doc.as<ArduinoJson::JsonArray>());
+  auto expectedJsonSize = 128;
+  for(const auto& profile : *this)
+  {
+    expectedJsonSize += profile.second.getJSONSize();
+  }
+
+  DynamicJsonDocument doc(expectedJsonSize);
+  auto jsonArray = doc.createNestedArray("profiles");
+  toJson(jsonArray);
 
   String strJson;
   serializeJson(doc, strJson);
-  m_preferences.begin(fileNamespace);
-  m_preferences.putString(jsonFileKey, strJson);
+  if (!m_preferences.begin(fileNamespace, false))
+  {
+    log_e("Could not open flash");
+    return;
+  }
+  m_preferences.putString(jsonFileKey, strJson.c_str());
   m_preferences.end();
+
+  String prettyJson;
+  serializeJsonPretty(doc, prettyJson);
+  Serial.printf("Storing profiles:\n%s\n", prettyJson.c_str());
 }
 
 void resp32flow::ProfileHandler::loadProfiles()
 {
-  m_preferences.begin(fileNamespace);
-  auto strJson = m_preferences.getString(jsonFileKey, {"[]"});
+  m_preferences.begin(fileNamespace, true);
+  auto strJson = m_preferences.getString(jsonFileKey, {"{}"});
   m_preferences.end();
 
-  DynamicJsonDocument doc(strJson.length());
-  deserializeJson(doc, strJson);
+  DynamicJsonDocument doc(strJson.length() * 3);
+  deserializeJson(doc, strJson.c_str());
 
-  addFromJson(doc.as<ArduinoJson::JsonArrayConst>());
+  if (doc.containsKey("profiles"))
+  {
+    addFromJson(doc["profiles"]);
+  }
 }

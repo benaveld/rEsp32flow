@@ -116,12 +116,12 @@ void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler *a
   {
     if (stepId.id == profile.steps.size())
     {
-      profile.steps.emplace_back(a_json.as<JsonObjectConst>());
+      profile.steps.emplace_back(a_json);
       httpResponseCode = 201;
     }
     else if (stepId.id < profile.steps.size())
     {
-      profile.steps[stepId.id] = resp32flow::ProfileStep(a_json.as<JsonObjectConst>());
+      profile.steps[stepId.id] = resp32flow::ProfileStep(a_json);
     }
     else
     {
@@ -131,7 +131,7 @@ void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler *a
   else
   {
     log_i("update profile");
-    profile = resp32flow::Profile(a_json.as<JsonObjectConst>());
+    profile = resp32flow::Profile(a_json);
   }
 
   a_request->send(httpResponseCode);
