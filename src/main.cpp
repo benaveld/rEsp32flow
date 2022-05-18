@@ -8,6 +8,8 @@
 
 using namespace resp32flow;
 
+static constexpr uint8_t RELAY_PIN = 32;
+
 WebServer webServer{80};
 TemperatureHistory *temperatureHistory{nullptr};
 RelayController *relayController{nullptr};
@@ -22,7 +24,7 @@ void setup()
   temperatureHistory = new TemperatureHistory(temperatureSensor);
   temperatureHistory->begin();
 
-  relayController = new RelayController(32, temperatureSensor);
+  relayController = new RelayController(RELAY_PIN, temperatureSensor);
 
   profileHandler.loadProfiles();
 
