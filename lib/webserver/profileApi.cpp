@@ -11,14 +11,14 @@ struct IdProp
   unsigned long id;
 };
 
-static void handleProfileGet(resp32flow::ProfileHandler &a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
+static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
 {
   AsyncJsonResponse *response{nullptr};
   if (a_id.valid)
   {
-    auto &&profileItr = a_profileHandler.find(a_id.id);
+    auto &&profileItr = a_profileHandler->find(a_id.id);
     response = new AsyncJsonResponse(false); // TODO: calculate the requeued size.
-    if (profileItr != a_profileHandler.end())
+    if (profileItr != a_profileHandler->end())
     {
       const auto &profile = profileItr->second;
       if (a_stepId.valid)
@@ -45,20 +45,20 @@ static void handleProfileGet(resp32flow::ProfileHandler &a_profileHandler, IdPro
   else
   {
     response = new AsyncJsonResponse(true); // TODO: calculate the requeued size.
-    a_profileHandler.toJson(response->getRoot());
+    a_profileHandler->toJson(response->getRoot());
   }
 
   log_v("profile(s) json response size: %u", response->setLength());
   a_request->send(response);
 }
 
-static void handleDeleteProfile(resp32flow::ProfileHandler &a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
+static void handleDeleteProfile(resp32flow::ProfileHandler *a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
 {
   if (!a_id.valid)
-    return a_request->send(400, "text/plain", "Not allowed to deleta all profiles at once");
+    return a_request->send(400, "text/plain", "Not allowed to delta all profiles at once");
 
-  auto &&profileItr = a_profileHandler.find(a_id.id);
-  if (profileItr == a_profileHandler.end())
+  auto &&profileItr = a_profileHandler->find(a_id.id);
+  if (profileItr == a_profileHandler->end())
     return a_request->send(400, "text/plain", "Can't find profile.");
 
   if (a_stepId.valid)
@@ -73,12 +73,12 @@ static void handleDeleteProfile(resp32flow::ProfileHandler &a_profileHandler, Id
     return a_request->send(200);
   }
 
-  a_profileHandler.erase(profileItr);
+  a_profileHandler->erase(profileItr);
   return a_request->send(200);
 }
 
 // TODO validate input
-void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
+void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
 {
   if (a_request->method() != HTTP_PUT)
   {
@@ -103,11 +103,11 @@ void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler &a
   }
 
   int httpResponseCode = 200;
-  auto profileItr = a_profileHandler.find(static_cast<int>(id.id));
-  if (profileItr == a_profileHandler.end())
+  auto profileItr = a_profileHandler->find(static_cast<int>(id.id));
+  if (profileItr == a_profileHandler->end())
   {
     log_i("create new profile");
-    profileItr = a_profileHandler.emplace(static_cast<int>(id.id), id.id).first;
+    profileItr = a_profileHandler->emplace(static_cast<int>(id.id), id.id).first;
     httpResponseCode = 201;
   }
   auto &profile = profileItr->second;
@@ -135,10 +135,10 @@ void resp32flow::webserver::api::handleJsonProfile(resp32flow::ProfileHandler &a
   }
 
   a_request->send(httpResponseCode);
-  a_profileHandler.storeProfiles();
+  a_profileHandler->storeProfiles();
 }
 
-void resp32flow::webserver::api::handleProfile(resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request)
+void resp32flow::webserver::api::handleProfile(resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request)
 {
   IdProp id{false, 0};
   IdProp stepId{false, 0};

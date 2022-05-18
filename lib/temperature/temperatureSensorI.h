@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <functional>
 #include <vector>
+#include <string>
 
 namespace resp32flow
 {
@@ -17,6 +18,7 @@ namespace resp32flow
     virtual temp_t getOvenTemp() = 0;
     virtual temp_t getChipTemp() = 0;
     virtual fault_t getFault() = 0;
+    virtual std::vector<std::string> getFaultStatusTexts() = 0;
 
     void subscribeToFault(faultCallback_t a_faultCallback);
 

@@ -15,10 +15,10 @@ void controllerLoop(void *parameter)
 resp32flow::RelayController::RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor)
     : m_relayPin(a_relayPin),
       m_temperatureSensor(a_temperatureSensor),
-      m_pid(&m_ovenTemp, &m_relayOnTime, &m_setPoint, 0, 0, 0, PID::Direction::Direct),
       m_mutex(xSemaphoreCreateRecursiveMutex())
 {
   assert(a_temperatureSensor != nullptr);
+  m_pid.begin(&m_ovenTemp, &m_relayOnTime, &m_setPoint);
 }
 
 resp32flow::RelayController::~RelayController()
@@ -37,16 +37,18 @@ void resp32flow::RelayController::start(const Profile &a_profile)
 
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
   m_selectedProfile = &a_profile;
-  m_profileStep = 0;
+  m_profileStepIndex = 0;
   setupProfileStep();
   m_ovenTemp = m_temperatureSensor->getOvenTemp();
   m_relayOnTime = 0;
   m_setPoint = 100;
-  m_pid.SetOutputLimits(0, m_sampleRate);
-  m_pid.SetMode(PID::Automatic);
+  m_pid.setOutputLimits(0, m_sampleRate);
+
+  m_pid.start();
+
   xSemaphoreGiveRecursive(m_mutex);
 
-  xTaskCreate(controllerLoop, "RelayController loop", 1024, this, TASK_PRIORITY, &m_taskHandler);
+  xTaskCreate(controllerLoop, "RelayController loop", 2048, this, TASK_PRIORITY, &m_taskHandler);
 }
 
 void resp32flow::RelayController::stop()
@@ -55,6 +57,7 @@ void resp32flow::RelayController::stop()
   vTaskDelete(m_taskHandler);
   digitalWrite(m_relayPin, LOW);
   m_selectedProfile = nullptr;
+  m_pid.stop();
   xSemaphoreGiveRecursive(m_mutex);
 }
 
@@ -64,7 +67,7 @@ void resp32flow::RelayController::setupProfileStep()
     return;
   auto &&step = getCurrentProfileStep();
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  m_pid.SetTunings(step->Kp, step->Ki, step->Kd);
+  m_pid.setCoefficients(step->Kp, step->Ki, step->Kd);
   m_stepStartTime = millis();
   xSemaphoreGiveRecursive(m_mutex);
 }
@@ -84,8 +87,8 @@ void resp32flow::RelayController::tick()
   auto &&step = getCurrentProfileStep();
   if (step->targetTemp <= ovenTemp && step->timer <= stepTime)
   {
-    m_profileStep++;
-    if (m_profileStep < m_selectedProfile->steps.size())
+    m_profileStepIndex++;
+    if (m_profileStepIndex < m_selectedProfile->steps.size())
     {
       setupProfileStep();
     }
@@ -95,8 +98,7 @@ void resp32flow::RelayController::tick()
     }
   }
 
-  while (!m_pid.Compute())
-    vTaskDelay(MUTEX_BLOCK_DELAY);
+  m_pid.compute();
 
   xSemaphoreGiveRecursive(m_mutex);
 
@@ -118,8 +120,8 @@ const resp32flow::ProfileStep *resp32flow::RelayController::getCurrentProfileSte
     return nullptr;
 
   decltype(getCurrentProfileStep()) stepPtr = nullptr;
-  if (m_profileStep < m_selectedProfile->steps.size())
-    stepPtr = &m_selectedProfile->steps[m_profileStep];
+  if (m_profileStepIndex < m_selectedProfile->steps.size())
+    stepPtr = &m_selectedProfile->steps[m_profileStepIndex];
   xSemaphoreGiveRecursive(m_mutex);
   return stepPtr;
 }
@@ -138,11 +140,11 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
 {
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
   a_jsonObject["isOn"] = m_selectedProfile != nullptr;
-  //a_jsonObject["sampleRate"] = m_sampleRate;
+  // a_jsonObject["sampleRate"] = m_sampleRate;
   if (isOn())
   {
     a_jsonObject["profileId"] = m_selectedProfile->id;
-    a_jsonObject["profileStepIndex"] = m_profileStep;
+    a_jsonObject["profileStepIndex"] = m_profileStepIndex;
     a_jsonObject["stepTime"] = getStepTimer();
   }
   xSemaphoreGiveRecursive(m_mutex);
@@ -150,9 +152,9 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
 
 bool resp32flow::RelayController::setSampleRate(decltype(m_sampleRate) a_sampleRate)
 {
-  if(isOn())
+  if (isOn())
     return false;
-  
+
   m_sampleRate = a_sampleRate;
   return true;
 }

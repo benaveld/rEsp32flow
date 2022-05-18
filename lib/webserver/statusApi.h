@@ -9,6 +9,6 @@ namespace resp32flow
 
   namespace webserver
   {
-    void respondStatusJson(resp32flow::RelayController &a_relayController, resp32flow::TemperatureSensorI &sensor, AsyncWebServerRequest *request);
+    void respondStatusJson(resp32flow::RelayController *a_relayController, resp32flow::TemperatureSensorI *sensor, AsyncWebServerRequest *request);
   }
 }

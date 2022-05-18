@@ -10,5 +10,6 @@ namespace resp32flow
     virtual temp_t getOvenTemp() override;
     virtual temp_t getChipTemp() override;
     virtual fault_t getFault() override;
+    virtual std::vector<std::string> getFaultStatusTexts() override;
   };
 }

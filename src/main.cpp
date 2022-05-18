@@ -13,7 +13,7 @@ static constexpr uint8_t RELAY_PIN = 32;
 WebServer webServer{80};
 TemperatureHistory *temperatureHistory{nullptr};
 RelayController *relayController{nullptr};
-ProfileHandler profileHandler;
+ProfileHandler *profileHandler{nullptr};
 
 void setup()
 {
@@ -26,9 +26,10 @@ void setup()
 
   relayController = new RelayController(RELAY_PIN, temperatureSensor);
 
-  profileHandler.loadProfiles();
+  profileHandler = new ProfileHandler();
+  profileHandler->loadProfiles();
 
-  webServer.setup(temperatureHistory, relayController, &profileHandler);
+  webServer.setup(temperatureHistory, relayController, profileHandler);
 
   log_v("setup done");
 }

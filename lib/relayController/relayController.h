@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <PID_v2.h>
+#include <ArduPID.h>
 #include <myTypes.h>
 #include <ArduinoJson.h>
 
@@ -21,15 +21,17 @@ namespace resp32flow
     TemperatureSensorI *m_temperatureSensor{nullptr};
     const Profile *m_selectedProfile{nullptr};
     TaskHandle_t m_taskHandler{nullptr};
-    PID m_pid;
+    ArduPID m_pid;
     SemaphoreHandle_t m_mutex;
 
-    size_t m_profileStep = 0;
+    size_t m_profileStepIndex = 0;
     time_t m_stepStartTime = 0;
     double m_relayOnTime = 0; // linked into pid output
     double m_ovenTemp = 0;    // input to pid
     double m_setPoint = 0;    // setPoint for pid
     double m_sampleRate = 20000; // in ms
+
+    double m_Kp, m_Ki, m_Kd = 0;
 
     void setupProfileStep();
 

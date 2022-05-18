@@ -15,3 +15,8 @@ auto resp32flow::TemperatureDummy::getFault() -> fault_t
 {
   return 0;
 }
+
+std::vector<std::string> resp32flow::TemperatureDummy::getFaultStatusTexts()
+{
+  return {};
+}

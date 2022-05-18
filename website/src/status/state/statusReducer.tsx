@@ -16,6 +16,7 @@ export const initialStatusState: StatusState = {
   oven: 0,
   chip: 0,
   fault: 0,
+  faultText: [],
 };
 
 export function StatusReducer(

@@ -33,6 +33,7 @@ namespace resp32flow
     virtual temp_t getOvenTemp() override;
     virtual temp_t getChipTemp() override;
     virtual uint8_t getFault() override;
+    virtual std::vector<std::string> getFaultStatusTexts() override;
 
     TemperatureMAX31856(TemperatureMAX31856 &other) = delete;
     TemperatureMAX31856 &operator=(const TemperatureMAX31856 &) = delete;

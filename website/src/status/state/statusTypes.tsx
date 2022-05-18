@@ -33,4 +33,5 @@ export interface StatusState {
   oven: number;
   chip: number;
   fault: number;
+  faultText: string[];
 }

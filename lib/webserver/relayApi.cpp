@@ -2,7 +2,7 @@
 #include <relayController.h>
 #include <profileHandler.h>
 
-void resp32flow::webserver::api::handleJsonRelay(resp32flow::RelayController &a_relayController, resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
+void resp32flow::webserver::api::handleJsonRelay(resp32flow::RelayController *a_relayController, resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
 {
   if (a_request->method() != HTTP_PUT)
   {
@@ -12,11 +12,11 @@ void resp32flow::webserver::api::handleJsonRelay(resp32flow::RelayController &a_
   if (a_json.containsKey("profileId"))
   {
     auto id = a_json["profileId"].as<int32_t>();
-    a_relayController.start(a_profileHandler[id]);
+    a_relayController->start((*a_profileHandler)[id]);
   }
 
   if (a_json.containsKey("stop"))
   {
-    a_relayController.stop();
+    a_relayController->stop();
   }
 }

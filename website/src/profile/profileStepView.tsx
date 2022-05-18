@@ -9,13 +9,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { merge } from "../myUtils";
 import { ProfileStep } from "./profileStep";
 
 interface ProfileStepViewProps {
   index: number;
   step: ProfileStep;
-  setIsEdit: (index?: number) => void;
-  onDelete: (index: number) => void;
+  setIsEdit?: (index?: number) => void;
+  onDelete?: (index: number) => void;
 }
 
 export function ProfileStepView(props: ProfileStepViewProps) {
@@ -29,11 +30,38 @@ export function ProfileStepView(props: ProfileStepViewProps) {
     setAnchorEl(null);
   };
 
+  let actions: any[] = [];
+  if (setIsEdit !== undefined) {
+    actions = merge([
+      actions,
+      [
+        <MenuItem key="edit" onClick={handleClose}>
+          <IconButton aria-label="edit step" onClick={() => setIsEdit(index)}>
+            <Edit />
+          </IconButton>
+        </MenuItem>,
+      ],
+    ]);
+  }
+
+  if (onDelete !== undefined) {
+    actions = merge([
+      actions,
+      [
+        <MenuItem key="delete" onClick={handleClose}>
+          <IconButton aria-label="delete step" onClick={() => onDelete(index)}>
+            <Delete />
+          </IconButton>
+        </MenuItem>,
+      ],
+    ]);
+  }
+
   return (
     <Card>
       <CardHeader
         title={"At " + step.temperature + "°C for " + step.timer / 1000 + "sec"}
-        action={
+        action={actions.length > 0 &&
           <div>
             <IconButton aria-label="settings" onClick={handleClick}>
               <MoreVert />
@@ -44,19 +72,7 @@ export function ProfileStepView(props: ProfileStepViewProps) {
               onClose={handleClose}
               MenuListProps={{ "aria-labelledby": "profile step options" }}
             >
-              <MenuItem onClick={handleClose}>
-                <IconButton
-                  aria-label="edit step"
-                  onClick={() => setIsEdit(index)}
-                >
-                  <Edit />
-                </IconButton>
-              </MenuItem>
-              <MenuItem onClick={handleClose}>
-                <IconButton aria-label="delete step" onClick={() => onDelete(index)}>
-                  <Delete />
-                </IconButton>
-              </MenuItem>
+              {actions}
             </Menu>
           </div>
         }

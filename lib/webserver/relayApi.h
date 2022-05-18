@@ -12,7 +12,7 @@ namespace resp32flow
   {
     namespace api
     {
-      void handleJsonRelay(resp32flow::RelayController &a_relayController, resp32flow::ProfileHandler &a_profileHandler, AsyncWebServerRequest *request, JsonVariant &json);
+      void handleJsonRelay(resp32flow::RelayController *a_relayController, resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *request, JsonVariant &json);
     }
   }
 }

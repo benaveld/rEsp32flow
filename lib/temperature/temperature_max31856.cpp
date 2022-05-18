@@ -63,3 +63,30 @@ resp32flow::TemperatureMAX31856 *resp32flow::TemperatureMAX31856::getInstance()
   }
   return _ptrInstance;
 }
+
+std::vector<std::string> resp32flow::TemperatureMAX31856::getFaultStatusTexts()
+{
+  decltype(getFaultStatusTexts()) result;
+  auto fault = getFault();
+  if (fault == 0)
+    return result;
+
+  if (fault & MAX31856_FAULT_CJRANGE)
+    result.emplace_back("Cold Junction Range Fault");
+  if (fault & MAX31856_FAULT_TCRANGE)
+    result.emplace_back("Thermocouple Range Fault");
+  if (fault & MAX31856_FAULT_CJHIGH)
+    result.emplace_back("Cold Junction High Fault");
+  if (fault & MAX31856_FAULT_CJLOW)
+    result.emplace_back("Cold Junction Low Fault");
+  if (fault & MAX31856_FAULT_TCHIGH)
+    result.emplace_back("Thermocouple High Fault");
+  if (fault & MAX31856_FAULT_TCLOW)
+    result.emplace_back("Thermocouple Low Fault");
+  if (fault & MAX31856_FAULT_OVUV)
+    result.emplace_back("Over/Under Voltage Fault");
+  if (fault & MAX31856_FAULT_OPEN)
+    result.emplace_back("Thermocouple Open Fault");
+
+  return result;
+}
