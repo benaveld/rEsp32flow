@@ -13,41 +13,33 @@ struct IdProp
 
 static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
 {
-  AsyncJsonResponse *response{nullptr};
-  if (a_id.valid)
+  if (!a_id.valid)
   {
-    auto &&profileItr = a_profileHandler->find(a_id.id);
-    response = new AsyncJsonResponse(false, a_profileHandler->getJsonSize()); // TODO: calculate the requeued size.
-    if (profileItr != a_profileHandler->end())
-    {
-      const auto &profile = profileItr->second;
-      if (a_stepId.valid)
-      {
-        if (profile.steps.size() > a_stepId.id)
-        {
-          profile.steps[a_stepId.id].toJSON(response->getRoot());
-        }
-        else
-        {
-          return a_request->send(404, "text/plain", "Can't find requested profile step.");
-        }
-      }
-      else
-      {
-        profile.toJSON(response->getRoot());
-      }
-    }
-    else
-    {
-      return a_request->send(404, "text/plain", "Can't find requested profile.");
-    }
+    auto response = new AsyncJsonResponse(true, a_profileHandler->getJsonSize());
+    a_profileHandler->toJson(response->getRoot());
+    response->setLength();
+    return a_request->send(response);
+  }
+
+  auto &&profileItr = a_profileHandler->find(a_id.id);
+  auto response = new AsyncJsonResponse(false, a_profileHandler->getJsonSize());
+  if (profileItr == a_profileHandler->end())
+    return a_request->send(404, "text/plain", "Can't find requested profile.");
+
+  const auto &profile = profileItr->second;
+  if (a_stepId.valid)
+  {
+    if (profile.steps.size() <= a_stepId.id)
+      return a_request->send(404, "text/plain", "Can't find requested profile step.");
+
+    profile.steps[a_stepId.id].toJSON(response->getRoot());
   }
   else
   {
-    response = new AsyncJsonResponse(true, a_profileHandler->getJsonSize()); // TODO: calculate the requeued size.
-    a_profileHandler->toJson(response->getRoot());
+    profile.toJSON(response->getRoot());
   }
 
+  response->setLength();
   a_request->send(response);
 }
 

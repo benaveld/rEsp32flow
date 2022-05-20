@@ -51,7 +51,6 @@ void resp32flow::ProfileHandler::storeProfiles()
 
   String prettyJson;
   ArduinoJson::serializeJsonPretty(doc, prettyJson);
-  Serial.printf("Storing profiles:\n%s\n", prettyJson.c_str());
 }
 
 void resp32flow::ProfileHandler::loadProfiles()
@@ -60,9 +59,9 @@ void resp32flow::ProfileHandler::loadProfiles()
   auto strJson = m_preferences.getString(jsonFileKey, {"{}"});
   m_preferences.end();
 
-  DynamicJsonDocument doc(strJson.length() * 3);
+  DynamicJsonDocument doc(strJson.length() * 3 + 16);
   deserializeJson(doc, strJson.c_str());
-
+  
   if (doc.containsKey("profiles"))
   {
     addFromJson(doc["profiles"]);

@@ -17,7 +17,7 @@ namespace resp32flow
     size_t getJsonSize() const;
 
   private:
-    constexpr static auto fileNamespace = "profile"; 
+    constexpr static auto fileNamespace = "profile";
     constexpr static auto jsonFileKey = "jsonData";
 
     Preferences m_preferences;
