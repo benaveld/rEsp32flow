@@ -7,7 +7,9 @@
 
 	"settings": {
 		"platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
-		"platformio-ide.disablePIOHomeStartup": true
+		"platformio-ide.disablePIOHomeStartup": true,
+		"platformio-ide.customPATH": "/usr/local/bin",
+		"platformio-ide.useBuiltinPIOCore": false
 	},
 
 	"extensions": [

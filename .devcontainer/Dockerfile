@@ -1,9 +1,10 @@
 FROM petewall/platformio:latest
 
-RUN apt-get update && apt-get install \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
   curl \
   git \
-  && apt-get clean
+  nodejs \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN pio upgrade \
   && pio pkg install -g -p espressif32 \

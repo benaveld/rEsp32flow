@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { useSelector } from "react-redux";
 import { AppState } from "../state";
@@ -24,27 +24,14 @@ ChartJS.register(
 );
 
 const TemperatureChart = () => {
-  /*
-  const ovenTemperatureHistory = useSelector(
-    (appState: AppState) => appState.temperatureState.ovenHistory
-  );
-  const chipTemperatureHistory = useSelector(
-    (appState: AppState) => appState.temperatureState.chipHistory
-  );
-  const errorMessage = useSelector(
-    (appState: AppState) => appState.temperatureState.error
-  );
-  */
-
-  const oven = useSelector((appState: AppState) => appState.statusState.oven);
-  const chip = useSelector((appState: AppState) => appState.statusState.chip);
+  const { oven, chip } = useSelector((appState: AppState) => appState.statusState);
 
   const [ovenTemperatureHistory, setOvenTemperatureHistory] = useState([oven]);
   const [chipTemperatureHistory, setChipTemperatureHistory] = useState([chip]);
 
   useEffect(() => {
-    setOvenTemperatureHistory([...ovenTemperatureHistory, oven]);
-    setChipTemperatureHistory([...chipTemperatureHistory, chip]);
+    setOvenTemperatureHistory((old) => [...old, oven]);
+    setChipTemperatureHistory((old) => [...old, chip]);
   }, [oven, chip]);
 
   const options = {
@@ -74,7 +61,7 @@ const TemperatureChart = () => {
   };
 
   const data = {
-    labels: ovenTemperatureHistory.map((value, index, array) => {
+    labels: ovenTemperatureHistory.map((_, index, array) => {
       const totalSeconds: number = array.length - index;
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;

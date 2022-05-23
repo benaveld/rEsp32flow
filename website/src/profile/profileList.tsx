@@ -56,7 +56,7 @@ export default function ProfileList() {
   }, [dispatch]);
 
   return (
-    <Box>
+    <Box sx={{width: "fit-content"}}>
       <IconButton aria-label="add" onClick={handleClickOpen}>
         <Add />
       </IconButton>

@@ -1,16 +1,41 @@
 import { Delete, Edit, MoreVert } from "@mui/icons-material";
 import {
   Card,
-  CardContent,
   CardHeader,
   IconButton,
+  ListItemIcon,
+  ListItemText,
   Menu,
   MenuItem,
-  Typography,
+  MenuItemProps,
 } from "@mui/material";
 import { useState } from "react";
 import { merge } from "../myUtils";
 import { ProfileStep } from "./profileStep";
+
+type createActionProps = {
+  icon: any;
+  text: string;
+} & MenuItemProps;
+
+function createAction(props: createActionProps) {
+  const { icon, text, ...other } = props;
+  return (
+    <MenuItem {...other}>
+      <ListItemIcon>{icon}</ListItemIcon>
+      <ListItemText>{text}</ListItemText>
+    </MenuItem>
+  );
+}
+
+function addAction(
+  actions: JSX.Element[],
+  isEnabled: boolean,
+  props: createActionProps
+) {
+  if (!isEnabled) return actions;
+  return merge([actions, [createAction(props)]]);
+}
 
 interface ProfileStepViewProps {
   index: number;
@@ -22,7 +47,6 @@ interface ProfileStepViewProps {
 export function ProfileStepView(props: ProfileStepViewProps) {
   const { step, index, setIsEdit, onDelete } = props;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -30,58 +54,49 @@ export function ProfileStepView(props: ProfileStepViewProps) {
     setAnchorEl(null);
   };
 
-  let actions: any[] = [];
-  if (setIsEdit !== undefined) {
-    actions = merge([
-      actions,
-      [
-        <MenuItem key="edit" onClick={handleClose}>
-          <IconButton aria-label="edit step" onClick={() => setIsEdit(index)}>
-            <Edit />
-          </IconButton>
-        </MenuItem>,
-      ],
-    ]);
-  }
+  let actions = addAction([], setIsEdit !== undefined, {
+    key: "edit",
+    text: "Edit step",
+    icon: <Edit fontSize="small" />,
+    onClick: () => {
+      handleClose();
+      setIsEdit!(index);
+    },
+  });
 
-  if (onDelete !== undefined) {
-    actions = merge([
-      actions,
-      [
-        <MenuItem key="delete" onClick={handleClose}>
-          <IconButton aria-label="delete step" onClick={() => onDelete(index)}>
-            <Delete />
-          </IconButton>
-        </MenuItem>,
-      ],
-    ]);
-  }
+  actions = addAction(actions, onDelete !== undefined, {
+    key: "delete",
+    text: "Delete",
+    icon: <Delete fontSize="small" />,
+    onClick: () => {
+      handleClose();
+      onDelete!(index);
+    },
+  });
 
   return (
     <Card>
       <CardHeader
         title={"At " + step.temperature + "°C for " + step.timer / 1000 + "sec"}
-        action={actions.length > 0 &&
-          <div>
-            <IconButton aria-label="settings" onClick={handleClick}>
-              <MoreVert />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{ "aria-labelledby": "profile step options" }}
-            >
-              {actions}
-            </Menu>
-          </div>
+        subheader={"Kp: " + step.Kp + "\tKi: " + step.Ki + "\tKd: " + step.Kd}
+        action={
+          actions.length > 0 && (
+            <div>
+              <IconButton aria-label="settings" onClick={handleClick}>
+                <MoreVert />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                MenuListProps={{ "aria-labelledby": "profile step options" }}
+              >
+                {actions}
+              </Menu>
+            </div>
+          )
         }
       />
-      <CardContent>
-        <Typography>
-          Kp: {step.Kp}&emsp;Ki: {step.Ki}&emsp;Kd: {step.Kd}
-        </Typography>
-      </CardContent>
     </Card>
   );
 }
