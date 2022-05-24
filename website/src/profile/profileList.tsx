@@ -52,9 +52,9 @@ export default function ProfileList(props: PaperProps) {
   }, [dispatch]);
 
   return (
-    <Paper elevation={1} {...props}>
+    <Paper elevation={2} {...props}>
       <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <Typography variant="h5" sx={{ width: "100%" }}>
+        <Typography variant="h5" sx={{ width: "100%", margin: "1ch 0 0 1ch" }}>
           Profiles
         </Typography>
 

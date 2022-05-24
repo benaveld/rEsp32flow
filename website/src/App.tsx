@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import { Provider } from "react-redux";
 import ProfileList from "./profile/profileList";
 import { store } from "./state";
@@ -8,12 +8,17 @@ import TemperatureChart from "./temperature/temperature";
 function App() {
   return (
     <Provider store={store}>
-      <Box sx={{ display: "flex", width: "100%" }}>
-        <StatusView sx={{width: "fit-content"}} />
-        <Box sx={{ flexGrow: 1}}>
+      <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <Paper
+          elevation={1}
+          sx={{ display: "flex", flexDirection: "column", padding: "1ch" }}
+        >
+          <StatusView />
+          <ProfileList />
+        </Paper>
+        <Box sx={{ padding: "1ch", flexGrow: 1, width: "80em", height: "60em" }}>
           <TemperatureChart />
         </Box>
-        <ProfileList sx={{margin: "2ch" }} />
       </Box>
     </Provider>
   );

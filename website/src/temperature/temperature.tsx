@@ -11,6 +11,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartOptions,
 } from "chart.js";
 
 ChartJS.register(
@@ -24,7 +25,9 @@ ChartJS.register(
 );
 
 const TemperatureChart = () => {
-  const { oven, chip } = useSelector((appState: AppState) => appState.statusState);
+  const { oven, chip } = useSelector(
+    (appState: AppState) => appState.statusState
+  );
 
   const [ovenTemperatureHistory, setOvenTemperatureHistory] = useState([oven]);
   const [chipTemperatureHistory, setChipTemperatureHistory] = useState([chip]);
@@ -34,8 +37,10 @@ const TemperatureChart = () => {
     setChipTemperatureHistory((old) => [...old, chip]);
   }, [oven, chip]);
 
-  const options = {
+  const options: ChartOptions<"line"> = {
     responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
     plugins: {
       legend: {
         position: "top" as const,
@@ -47,12 +52,15 @@ const TemperatureChart = () => {
         title: {
           display: true,
         },
+        grid: {
+          display: false,
+        },
       },
       y: {
         display: true,
         title: {
           display: true,
-          text: "Value",
+          text: "°C",
         },
         suggestedMin: 0,
         suggestedMax: 200,
