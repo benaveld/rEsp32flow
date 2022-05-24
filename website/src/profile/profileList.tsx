@@ -9,8 +9,11 @@ import {
   IconButton,
   TextField,
   Typography,
+  Tooltip,
+  Paper,
+  PaperProps,
 } from "@mui/material";
-import { Dispatch, useEffect, useState } from "react";
+import { Dispatch, useEffect, useState, SyntheticEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { AppState } from "../state";
@@ -18,27 +21,20 @@ import { getUniqId, Profile } from "./profile";
 import { ProfileView } from "./profileView";
 import { loadProfiles, saveProfile } from "./state/profileActions";
 
-export default function ProfileList() {
+export default function ProfileList(props: PaperProps) {
   const [open, setOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
   const dispatch: Dispatch<any> = useDispatch();
 
-  const profiles = useSelector(
-    (appState: AppState) => appState.profileState.profiles
-  );
-  const errorInfo = useSelector(
-    (appState: AppState) => appState.profileState.error
+  const { profiles, error } = useSelector(
+    (appState: AppState) => appState.profileState
   );
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleClickOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = (event: SyntheticEvent) => {
+    event.preventDefault();
     handleClose();
     const id = getUniqId(profiles);
     const profile = new Profile({ id, name: newProfileName });
@@ -56,35 +52,46 @@ export default function ProfileList() {
   }, [dispatch]);
 
   return (
-    <Box sx={{width: "fit-content"}}>
-      <IconButton aria-label="add" onClick={handleClickOpen}>
-        <Add />
-      </IconButton>
-      {errorInfo !== undefined && <Typography>{errorInfo}</Typography>}
+    <Paper elevation={1} {...props}>
+      <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <Typography variant="h5" sx={{ width: "100%" }}>
+          Profiles
+        </Typography>
+
+        <Tooltip title="Create a new Profile">
+          <IconButton aria-label="create profile" onClick={handleClickOpen}>
+            <Add />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {error !== undefined && <Typography>{error}</Typography>}
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Profile name</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="profile-name-form"
-            label="Profile name"
-            type="text"
-            fullWidth
-            value={newProfileName}
-            onChange={handleNewProfileNameChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Submit</Button>
-        </DialogActions>
+        <Box component="form" onSubmit={handleSubmit}>
+          <DialogTitle>Profile name</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="profile-name-form"
+              label="Profile name"
+              type="text"
+              fullWidth
+              value={newProfileName}
+              onChange={handleNewProfileNameChange}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit">Submit</Button>
+          </DialogActions>
+        </Box>
       </Dialog>
 
-      {profiles.map((value) => (
-        <ProfileView key={value.id} profile={value} />
-      ))}
-    </Box>
+      {profiles.map((value) => {
+        return <ProfileView key={value.id} profile={value} />;
+      })}
+    </Paper>
   );
 }

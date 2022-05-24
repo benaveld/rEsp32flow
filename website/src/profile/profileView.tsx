@@ -8,61 +8,63 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { Dispatch } from "redux";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
-import { merge } from "../myUtils";
 import { startRelay } from "../relay/relayActions";
+import { AppState } from "../state";
 import { Profile } from "./profile";
 import { ProfileStep } from "./profileStep";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
-import { deleteProfile, saveProfile } from "./state/profileActions";
+import {
+  deleteProfile,
+  editProfileStep,
+  stopEditingProfileStep,
+} from "./state/profileActions";
 
 interface ProfileViewProps {
   profile: Profile;
+  editingStepIndex?: number;
 }
 
 export function ProfileView(props: ProfileViewProps) {
-  const [profile, setProfile] = useState(props.profile);
+  const { profile } = props;
+  const { editingProfileStep } = useSelector(
+    (appState: AppState) => appState.profileState
+  );
+
+  const editingStepIndex =
+    editingProfileStep?.profile.id === profile.id
+      ? editingProfileStep.stepIndex
+      : null;
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch: Dispatch<any> = useDispatch();
 
-  const [editingStepId, setEditingStepId] = useState<React.Key | undefined>(
-    undefined
-  );
-
-  const addStep = () => {
-    const key = profile.steps.length;
-    setProfile({
-      ...profile,
-      steps: merge([profile.steps, [new ProfileStep()]]),
-    });
-    setEditingStepId(key);
+  const addStep = () => dispatch(editProfileStep(profile, new ProfileStep()));
+  const setEditStep = (index?: number) => {
+    if (index === undefined) {
+      return dispatch(stopEditingProfileStep());
+    }
+    dispatch(editProfileStep(profile, profile.steps[index], index));
   };
 
-  const onEditStep = (newStep: ProfileStep, index: number) => {
-    setEditingStepId(undefined);
-    dispatch(saveProfile(profile, newStep, index));
-  };
-
-  const onDeleteStep = (index: number) => {
+  const onDeleteStep = (index: number) =>
     dispatch(deleteProfile(profile, index));
-  };
 
   const onDeleteProfile = (doDelete: boolean) => {
     if (doDelete) dispatch(deleteProfile(profile));
     setDeleteDialogOpen(false);
   };
 
-  const onStartProfile = () => {
-    startRelay(profile.id);
-  }
+  const onStartProfile = () => startRelay(profile.id);
 
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMore />}>
-        <Typography>{profile.name}</Typography>
+        <Typography variant="h6">{profile.name}</Typography>
         <ConfirmationDialog
           id="delete-profile-dialog"
           title={"Delete: " + profile.name + "?"}
@@ -75,34 +77,32 @@ export function ProfileView(props: ProfileViewProps) {
 
       <AccordionDetails>
         {profile.steps.map((value, index) =>
-          index === editingStepId ? (
-            <ProfileStepForm
-              key={index}
-              index={index}
-              step={value}
-              setIsEdit={setEditingStepId}
-              onEdit={onEditStep}
-            />
+          index === editingStepIndex ? (
+            <ProfileStepForm key={index} />
           ) : (
             <ProfileStepView
               key={index}
               index={index}
               step={value}
-              setIsEdit={setEditingStepId}
+              setIsEdit={setEditStep}
               onDelete={onDeleteStep}
             />
           )
         )}
+        {profile.steps.length === editingStepIndex && (
+            <ProfileStepForm key={editingStepIndex} />
+          )}
       </AccordionDetails>
 
       <AccordionActions>
         <IconButton aria-label="start profile" onClick={onStartProfile}>
-          <Start/>
+          <Start />
         </IconButton>
 
         <IconButton aria-label="add profile step" onClick={addStep}>
           <Add />
         </IconButton>
+
         <IconButton
           aria-label="delete profile"
           onClick={() => setDeleteDialogOpen(true)}

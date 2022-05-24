@@ -8,6 +8,7 @@ import {
   Menu,
   MenuItem,
   MenuItemProps,
+  Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { merge } from "../myUtils";
@@ -77,8 +78,16 @@ export function ProfileStepView(props: ProfileStepViewProps) {
   return (
     <Card>
       <CardHeader
-        title={"At " + step.temperature + "°C for " + step.timer / 1000 + "sec"}
-        subheader={"Kp: " + step.Kp + "\tKi: " + step.Ki + "\tKd: " + step.Kd}
+        title={
+          <Typography noWrap variant="h6">
+            At {step.temperature}°C for {step.timer / 1000}sec
+          </Typography>
+        }
+        subheader={
+          <Typography noWrap variant="body1">
+            Kp: {step.Kp} Ki: {step.Ki} Kd: {step.Kd}
+          </Typography>
+        }
         action={
           actions.length > 0 && (
             <div>

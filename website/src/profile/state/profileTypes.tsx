@@ -1,4 +1,5 @@
 import { Profile } from "../profile";
+import { ProfileStep } from "../profileStep";
 
 export const LOAD_PROFILE_REQUEST = "LOAD_PROFILE_REQUEST";
 export const LOAD_PROFILE_SUCCESS = "LOAD_PROFILE_SUCCESS";
@@ -9,6 +10,7 @@ export const SAVE_PROFILE_FAILURE = "SAVE_PROFILE_FAILURE";
 export const DELETE_PROFILE_REQUEST = "DELETE_PROFILE_REQUEST";
 export const DELETE_PROFILE_SUCCESS = "DELETE_PROFILE_SUCCESS";
 export const DELETE_PROFILE_FAILURE = "DELETE_PROFILE_FAILURE";
+export const EDIT_PROFILE_STEP = "EDIT_PROFILE_STEP";
 
 interface LoadProfileRequest {
   type: typeof LOAD_PROFILE_REQUEST;
@@ -62,6 +64,17 @@ interface DeleteProfileFailure {
   };
 }
 
+interface EditProfileStep {
+  profile: Profile;
+  stepIndex: number;
+  step: ProfileStep;
+}
+
+interface EditProfileStepAction {
+  type: typeof EDIT_PROFILE_STEP;
+  payload?: EditProfileStep;
+}
+
 export type ProfileTypes =
   | LoadProfileRequest
   | LoadProfileSuccess
@@ -71,10 +84,12 @@ export type ProfileTypes =
   | SaveProfileFailure
   | DeleteProfileRequest
   | DeleteProfileSuccess
-  | DeleteProfileFailure;
+  | DeleteProfileFailure
+  | EditProfileStepAction;
 
 export interface ProfileState {
   loading: boolean;
   profiles: Profile[];
-  error: string | undefined;
+  editingProfileStep?: EditProfileStep;
+  error?: string;
 }

@@ -7,6 +7,7 @@ import {
   DELETE_PROFILE_FAILURE,
   DELETE_PROFILE_REQUEST,
   DELETE_PROFILE_SUCCESS,
+  EDIT_PROFILE_STEP,
   LOAD_PROFILE_FAILURE,
   LOAD_PROFILE_REQUEST,
   LOAD_PROFILE_SUCCESS,
@@ -68,10 +69,37 @@ export function deleteProfile(
       const response = await ProfileApi.delete(profile, stepIndex);
       return dispatch({
         type: DELETE_PROFILE_SUCCESS,
-        payload: {profileId: profile.id, stepIndex, response},
+        payload: { profileId: profile.id, stepIndex, response },
       });
     } catch (e) {
       return dispatch({ type: DELETE_PROFILE_FAILURE, payload: e });
     }
+  };
+}
+
+export function editProfileStep(
+  profile: Profile,
+  step: ProfileStep,
+  stepIndex?: number
+): ThunkAction<void, ProfileState, null, Action<string>> {
+  return async (dispatch: any) => {
+    dispatch({
+      type: EDIT_PROFILE_STEP,
+      payload: { profile, step, stepIndex: stepIndex ?? profile.steps.length },
+    });
+  };
+}
+
+export function stopEditingProfileStep(): ThunkAction<
+  void,
+  ProfileState,
+  null,
+  Action<string>
+> {
+  return async (dispatch: any) => {
+    dispatch({
+      type: EDIT_PROFILE_STEP,
+      payload: undefined,
+    });
   };
 }

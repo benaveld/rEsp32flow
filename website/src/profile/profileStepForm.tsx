@@ -3,23 +3,24 @@ import {
   Card,
   CardActions,
   CardContent,
+  CardProps,
   Grid,
   InputAdornment,
   TextField,
 } from "@mui/material";
-import { SyntheticEvent, useState } from "react";
+import { Dispatch, SyntheticEvent, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { AppState } from "../state";
 import { ProfileStep } from "./profileStep";
+import { saveProfile, stopEditingProfileStep } from "./state/profileActions";
 
-interface ProfileStepFormProps {
-  index: number;
-  step: ProfileStep;
-  onEdit: (step: ProfileStep, index: number) => void;
-  setIsEdit: (key?: React.Key) => void;
-}
+type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export function ProfileStepForm(props: ProfileStepFormProps) {
-  const { onEdit, setIsEdit, index } = props;
-  const [step, setStep] = useState(props.step);
+  const { profile, stepIndex, ...editingProfile} = useSelector((appState: AppState) => appState.profileState.editingProfileStep!);
+  const [step, setStep] = useState(editingProfile.step);
+  const dispatch: Dispatch<any> = useDispatch();
 
   const handleChange =
     (prop: keyof ProfileStep) =>
@@ -34,12 +35,13 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    onEdit(step, index);
+    dispatch(saveProfile(profile, step, stepIndex));
+    dispatch(stopEditingProfileStep());
   };
 
   const handleCancel = (event: SyntheticEvent) => {
     event.preventDefault();
-    setIsEdit(undefined);
+    dispatch(stopEditingProfileStep());
   };
 
   return (
@@ -48,6 +50,7 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
       noValidate
       autoComplete="off"
       onSubmit={handleSubmit}
+      {...props}
     >
       <CardContent>
         <Grid container spacing={1} columns={6}>

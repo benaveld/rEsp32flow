@@ -4,6 +4,7 @@ import {
   DELETE_PROFILE_FAILURE,
   DELETE_PROFILE_REQUEST,
   DELETE_PROFILE_SUCCESS,
+  EDIT_PROFILE_STEP,
   LOAD_PROFILE_FAILURE,
   LOAD_PROFILE_REQUEST,
   LOAD_PROFILE_SUCCESS,
@@ -92,7 +93,7 @@ export function ProfileReducer(
           (value) => value.id === action.payload.profileId
         );
         newProfile!.steps = newProfile!.steps.filter(
-          (value, index) => index !== action.payload.stepIndex
+          (_, index) => index !== action.payload.stepIndex
         );
         profiles = state.profiles.map((value) =>
           value.id === newProfile!.id ? newProfile! : value
@@ -111,7 +112,13 @@ export function ProfileReducer(
         loading: false,
         error: action.payload.message,
       };
-
+    
+    case EDIT_PROFILE_STEP:
+      return {
+        ...state,
+        editingProfileStep: action.payload,
+      }
+    
     default:
       return state;
   }

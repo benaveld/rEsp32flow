@@ -1,4 +1,4 @@
-import { Box, Button, Card, Typography } from "@mui/material";
+import { Box, BoxProps, Button, Card, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
@@ -8,7 +8,7 @@ import { stopRelay } from "../relay/relayActions";
 import { AppState } from "../state";
 import { updateStatus } from "./state/statusActions";
 
-export default function StatusView() {
+export default function StatusView(props: BoxProps) {
   const status = useSelector((appState: AppState) => appState.statusState);
   const { profiles } = useSelector(
     (appState: AppState) => appState.profileState
@@ -27,15 +27,17 @@ export default function StatusView() {
   }, [dispatch, status.loading]);
 
   return (
-    <Box sx={{ maxWidth: "30ch" }}>
-      <Typography>Oven: {status.oven}</Typography>
-      <Typography>Chip: {status.chip}</Typography>
+    <Box {...props}>
+      <Typography noWrap>Oven: {status.oven}</Typography>
+      <Typography noWrap>Chip: {status.chip}</Typography>
 
       {status.isOn && runningProfile !== undefined ? (
         <Card>
           <Typography>Running {runningProfile!.name}</Typography>
           <Button onClick={stopRelay}>Stop</Button>
-          <Typography>Current step {Math.round(status.stepTime / 1000)}sec</Typography>
+          <Typography>
+            Current step {Math.round(status.stepTime / 1000)}sec
+          </Typography>
           <ProfileStepView
             index={status.profileStepIndex}
             step={runningProfile!.steps[status.profileStepIndex]}
@@ -51,7 +53,7 @@ export default function StatusView() {
           )}
         </Card>
       ) : (
-        <Typography>Not running</Typography>
+        <Typography noWrap>Not running</Typography>
       )}
 
       {status.fault !== 0 && (
