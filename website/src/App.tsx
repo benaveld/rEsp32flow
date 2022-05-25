@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import ProfileList from "./profile/profileList";
 import { store } from "./state";
 import StatusView from "./status/statusView";
-import TemperatureChart from "./temperature/temperature";
+import TemperatureChart from "./status/temperatureChart";
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
           <StatusView />
           <ProfileList />
         </Paper>
-        <Box sx={{ padding: "1ch", flexGrow: 1, width: "80em", height: "60em" }}>
+        <Box sx={{ padding: "1ch", flexGrow: 1, width: "80em", height: "55em" }}>
           <TemperatureChart />
         </Box>
       </Box>

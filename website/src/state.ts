@@ -2,11 +2,6 @@ import { createStore, applyMiddleware } from "redux";
 import ReduxThunk from "redux-thunk";
 import { composeWithDevTools } from "@redux-devtools/extension";
 import { combineReducers } from "redux";
-import { TemperatureState } from "./temperature/state/temperatureTypes";
-import {
-  initialTemperatureState,
-  TemperatureReducer,
-} from "./temperature/state/temperatureReducer";
 import {
   initialProfileState,
   ProfileReducer,
@@ -19,7 +14,6 @@ import {
 import { StatusState } from "./status/state/statusTypes";
 
 const reducer = combineReducers({
-  temperatureState: TemperatureReducer,
   profileState: ProfileReducer,
   statusState: StatusReducer,
 });
@@ -34,15 +28,13 @@ export default function configureStore(preloadedState: any) {
 }
 
 export interface AppState {
-  temperatureState: TemperatureState;
   profileState: ProfileState;
   statusState: StatusState;
 }
 
 export const initialAppState: AppState = {
-  temperatureState: initialTemperatureState,
   profileState: initialProfileState,
-  statusState: initialStatusState
+  statusState: initialStatusState,
 };
 
 export const store = configureStore(initialAppState);

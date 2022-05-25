@@ -51,16 +51,9 @@ void resp32flow::TemperatureHistory::_updateHistory()
 
 void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize) const
 {
-  constexpr unsigned int precision = 1;
-  const auto precisionMult = std::pow(10, precision);
-
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  a_jsonObject["oven"] = round(m_sensor->getOvenTemp() * precisionMult);
-  a_jsonObject["chip"] = round(m_sensor->getChipTemp() * precisionMult);
   a_jsonObject["historySampleRate"] = m_sampleRate;
-  a_jsonObject["precision"] = precision;
-  a_jsonObject["fault"] = m_sensor->getFault();
-
+  //TODO make to history with time.  {uptime: {oven, chip}}
   if (historySize > 0)
   {
     decltype(m_ovenHistory)::index_t historyStartIndex = m_ovenHistory.size() > a_historySize ? m_ovenHistory.size() - a_historySize : 0;
@@ -68,13 +61,13 @@ void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject
     auto jsonOvenHistory = a_jsonObject.createNestedArray("ovenHistory");
     for (auto i = m_ovenHistory.size() - 1; i >= historyStartIndex; i--)
     {
-      jsonOvenHistory.add(round(m_ovenHistory[i] * precisionMult));
+      jsonOvenHistory.add(m_ovenHistory[i]);
     }
 
     auto jsonChipHistory = a_jsonObject.createNestedArray("chipHistory");
     for (auto i = m_chipHistory.size() - 1; i >= historyStartIndex; i--)
     {
-      jsonChipHistory.add(round(m_chipHistory[i] * precisionMult));
+      jsonChipHistory.add(m_chipHistory[i]);
     }
   }
 

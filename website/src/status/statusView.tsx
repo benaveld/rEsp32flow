@@ -28,8 +28,8 @@ export default function StatusView(props: BoxProps) {
 
   return (
     <Box {...props}>
-      <Typography noWrap>Oven: {status.oven}</Typography>
-      <Typography noWrap>Chip: {status.chip}</Typography>
+      <Typography noWrap>Oven: {status.oven.toFixed(2)}</Typography>
+      <Typography noWrap>Chip: {status.chip.toFixed(2)}</Typography>
 
       {status.isOn && runningProfile !== undefined ? (
         <Card>

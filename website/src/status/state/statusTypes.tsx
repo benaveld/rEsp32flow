@@ -32,6 +32,11 @@ export interface StatusState {
   stepTime: number;
   oven: number;
   chip: number;
+  uptime: number; // microseconds since start-up
+  history: Map<
+    number,
+    { oven: number; chip: number }
+  >;
   fault: number;
   faultText: string[];
 }

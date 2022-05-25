@@ -15,6 +15,8 @@ export const initialStatusState: StatusState = {
   stepTime: 0,
   oven: 0,
   chip: 0,
+  uptime: 0,
+  history: new Map(),
   fault: 0,
   faultText: [],
 };
@@ -28,11 +30,18 @@ export function StatusReducer(
       return { ...state, loading: true };
 
     case LOAD_STATUS_SUCCESS:
+      const { uptime, oven, chip } = action.payload;
+      let history = state.history;
+      if (uptime !== 0) {
+        history = history.set(uptime, { oven, chip });
+        history = new Map([...history].sort((a, b) => a[0] - b[0]));
+      }
       return {
         ...state,
         loading: false,
         error: undefined,
         ...action.payload,
+        history: history,
       };
 
     case LOAD_STATUS_FAILURE:
