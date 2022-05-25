@@ -1,60 +1,49 @@
 import { Line } from "react-chartjs-2";
 import { useSelector } from "react-redux";
 import { AppState } from "../state";
+import "chartjs-adapter-luxon";
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
   ChartOptions,
   ChartData,
+  registerables,
 } from "chart.js";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(...registerables);
 
 const TemperatureChart = () => {
   const { history } = useSelector((appState: AppState) => appState.statusState);
 
-  const historyKeys = [...history.keys()];
-  const historyValues = [...history.values()];
-  const latestKey = historyKeys[historyKeys.length - 1];
+  const latestUptime = history.length > 0 ? history[history.length - 1].uptime : 0;
+  const agedHistory = history.map((value) => {
+    return { ...value, age: latestUptime - value.uptime };
+  });
 
-  const data: ChartData<"line", number[], unknown> = {
-    labels: historyKeys.map((value) => {
-      const timeDiff = latestKey - value;
-      const totalSeconds = Math.round(timeDiff / 10 ** 3); // milliseconds to seconds
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-      return minutes + ":" + seconds;
-    }),
+  const data: ChartData<"line", any, unknown> = {
     datasets: [
       {
         label: "Oven",
-        data: historyValues.map((value) => value.oven),
+        data: agedHistory,
         pointRadius: 0,
         pointHitRadius: 0,
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
+        parsing: {
+          xAxisKey: "age",
+          yAxisKey: "oven",
+        },
       },
       {
         label: "Chip",
-        data: historyValues.map((value) => value.chip),
+        data: history,
         pointRadius: 0,
         pointHitRadius: 0,
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
+        parsing: {
+          xAxisKey: "age",
+          yAxisKey: "chip",
+        },
       },
     ],
   };
@@ -70,9 +59,15 @@ const TemperatureChart = () => {
     },
     scales: {
       x: {
-        display: true,
-        title: {
-          display: true,
+        type: "time",
+        reverse: true,
+        time: {
+          unit: "second",
+          stepSize: 10,
+          round: "second",
+          displayFormats: {
+            second: "mm:ss",
+          },
         },
         grid: {
           display: false,
@@ -80,9 +75,8 @@ const TemperatureChart = () => {
       },
       y: {
         display: true,
-        title: {
-          display: true,
-          text: "°C",
+        ticks: {
+          callback: (value) => value + "°C",
         },
         suggestedMin: 0,
         suggestedMax: 200,

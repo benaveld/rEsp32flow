@@ -4,6 +4,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
   curl \
   git \
   nodejs \
+  npm \
   && rm -rf /var/lib/apt/lists/*
 
 RUN pio upgrade \

@@ -9,7 +9,7 @@ interface LoadStatusRequest {
 
 interface LoadStatusSuccess {
   type: typeof LOAD_STATUS_SUCCESS;
-  payload: any;
+  payload: Omit<StatusState, "loading" | "error" | "history">;
 }
 
 interface LoadStatusFailure {
@@ -32,11 +32,12 @@ export interface StatusState {
   stepTime: number;
   oven: number;
   chip: number;
-  uptime: number; // microseconds since start-up
-  history: Map<
-    number,
-    { oven: number; chip: number }
-  >;
+  uptime: number; // milliseconds since start-up
+  history: {
+    uptime: number;
+    oven: number;
+    chip: number;
+  }[];
   fault: number;
   faultText: string[];
 }

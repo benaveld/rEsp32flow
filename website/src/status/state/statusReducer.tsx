@@ -1,3 +1,4 @@
+import { merge } from "../../myUtils";
 import {
   LOAD_STATUS_FAILURE,
   LOAD_STATUS_REQUEST,
@@ -5,6 +6,8 @@ import {
   StatusState,
   StatusTypes,
 } from "./statusTypes";
+
+const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
 export const initialStatusState: StatusState = {
   loading: false,
@@ -16,7 +19,7 @@ export const initialStatusState: StatusState = {
   oven: 0,
   chip: 0,
   uptime: 0,
-  history: new Map(),
+  history: [],
   fault: 0,
   faultText: [],
 };
@@ -30,18 +33,24 @@ export function StatusReducer(
       return { ...state, loading: true };
 
     case LOAD_STATUS_SUCCESS:
-      const { uptime, oven, chip } = action.payload;
-      let history = state.history;
-      if (uptime !== 0) {
-        history = history.set(uptime, { oven, chip });
-        history = new Map([...history].sort((a, b) => a[0] - b[0]));
+      if (action.payload.uptime === 0 || action.payload.oven === null) {
+        return { ...state, loading: false, error: undefined };
       }
       return {
         ...state,
         loading: false,
         error: undefined,
         ...action.payload,
-        history: history,
+        history: merge([
+          state.history,
+          [
+            {
+              uptime: action.payload.uptime,
+              oven: action.payload.oven,
+              chip: action.payload.chip,
+            },
+          ],
+        ]).filter(value => action.payload.uptime - keepHistoryTime <= value.uptime),
       };
 
     case LOAD_STATUS_FAILURE:
