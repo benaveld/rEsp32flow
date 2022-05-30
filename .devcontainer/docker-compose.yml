@@ -1,12 +1,21 @@
 version: '3.9'
 
+volumes:
+  pio:
+  vscode:
+  data:
+
 services:
   resp32flow:
     container_name: resp32flow
+    user: dev
     build: ./
     volumes:
       - ../:/app:rw
       - /dev:/dev:rw
+      - pio:/app/.pio:rw
+      - vscode:/app/.vscode:rw
+      - data:/app/data:rw
     tty: true
     device_cgroup_rules:
       - 'c 188:* rwm'

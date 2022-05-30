@@ -1,13 +1,17 @@
 version: '3.9'
+volumes:
+  node_modules:
+
 services:
   website:
     image: node:latest
     working_dir: "/app"
+    user: node
     container_name: website
     volumes:
-      - ../website:/app:ro
-      - ../website/node_modules:/app/node_modules:rw
+      - ../website:/app:rw
       - ../website/package-lock.json:/app/package-lock.json:rw
+      - node_modules:/app/node_modules:rw
     ports:
       - 3000:3000
     environment:

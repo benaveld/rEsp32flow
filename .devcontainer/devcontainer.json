@@ -1,23 +1,25 @@
 {
-	"name": "rEsp32flow",
-	"dockerComposeFile": ["docker-compose.yml", "../website/docker-compose.yml"],
-	"service": "resp32flow",
-	"workspaceFolder": "/app",
-	"shutdownAction": "stopCompose",
+  "name": "rEsp32flow",
+  "dockerComposeFile": ["docker-compose.yml", "../website/docker-compose.yml"],
+  "service": "resp32flow",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "dev",
 
-	"settings": {
-		"platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
-		"platformio-ide.disablePIOHomeStartup": true,
-		"platformio-ide.customPATH": "/usr/local/bin",
-		"platformio-ide.useBuiltinPIOCore": false
-	},
+  "workspaceFolder": "/app",
 
-	"extensions": [
-		"platformio.platformio-ide",
-		"esbenp.prettier-vscode",
-		"msjsdiag.vscode-react-native",
-		"dbaeumer.vscode-eslint",
-		"KnisterPeter.vscode-github",
-		"streetsidesoftware.code-spell-checker"
-	]
+  "settings": {
+    "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
+    "platformio-ide.disablePIOHomeStartup": true,
+    "platformio-ide.customPATH": "/usr/local/bin",
+    "platformio-ide.useBuiltinPIOCore": false
+  },
+
+  "extensions": [
+    "platformio.platformio-ide",
+    "esbenp.prettier-vscode",
+    "msjsdiag.vscode-react-native",
+    "dbaeumer.vscode-eslint",
+    "KnisterPeter.vscode-github",
+    "streetsidesoftware.code-spell-checker"
+  ]
 }
