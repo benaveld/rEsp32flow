@@ -17,3 +17,7 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
     command: "bash -c 'npm i && npm start'"
+
+  resp32flow:
+    volumes:
+      - node_modules:/app/website/node_modules:rw

@@ -35,7 +35,7 @@ const TemperatureChart = () => {
       },
       {
         label: "Chip",
-        data: history,
+        data: agedHistory,
         pointRadius: 0,
         pointHitRadius: 0,
         borderColor: "rgb(53, 162, 235)",

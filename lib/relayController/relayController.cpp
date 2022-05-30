@@ -32,8 +32,10 @@ resp32flow::RelayController::~RelayController()
 
 void resp32flow::RelayController::start(const Profile &a_profile)
 {
-  if (m_selectedProfile != nullptr)
-    throw std::runtime_error("Controller already running.");
+  if (m_selectedProfile != nullptr){
+    log_e("RelayController already on.");
+    return;
+  }
 
   xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
   m_selectedProfile = &a_profile;
@@ -146,6 +148,8 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
     a_jsonObject["profileId"] = m_selectedProfile->id;
     a_jsonObject["profileStepIndex"] = m_profileStepIndex;
     a_jsonObject["stepTime"] = getStepTimer();
+    a_jsonObject["relayOnTime"] = m_relayOnTime;
+    a_jsonObject["updateRate"] = m_sampleRate;
   }
   xSemaphoreGiveRecursive(m_mutex);
 }

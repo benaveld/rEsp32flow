@@ -22,6 +22,8 @@ export const initialStatusState: StatusState = {
   history: [],
   fault: 0,
   faultText: [],
+  relayOnTime: 0,
+  updateRate: 0,
 };
 
 export function StatusReducer(
@@ -50,7 +52,11 @@ export function StatusReducer(
               chip: action.payload.chip,
             },
           ],
-        ]).filter(value => action.payload.uptime - keepHistoryTime <= value.uptime),
+        ])
+          .filter(
+            (value) => action.payload.uptime - keepHistoryTime <= value.uptime
+          )
+          .sort((a, b) => a.uptime - b.uptime),
       };
 
     case LOAD_STATUS_FAILURE:

@@ -34,6 +34,4 @@ void setup()
   log_v("setup done");
 }
 
-void loop()
-{
-}
+void loop() {}

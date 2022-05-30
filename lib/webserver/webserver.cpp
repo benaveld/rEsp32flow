@@ -73,7 +73,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   if (request->method() == HTTP_OPTIONS) {
     auto response = request->beginResponse(200);
     response->addHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-    response->addHeader("Access-Control-Max-Age", "600"); // Cache results of a preflight request for 10 minutes
+    response->addHeader("Access-Control-Max-Age", "60"); // Cache results of a preflight request for 1 minute
     response->addHeader("Access-Control-Allow-Headers", "Content-Type");
     request->send(response);
   } else {

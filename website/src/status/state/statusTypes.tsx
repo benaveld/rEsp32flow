@@ -30,6 +30,8 @@ export interface StatusState {
   profileId: number;
   profileStepIndex: number;
   stepTime: number;
+  relayOnTime: number;
+  updateRate: number;
   oven: number;
   chip: number;
   uptime: number; // milliseconds since start-up

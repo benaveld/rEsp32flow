@@ -34,6 +34,8 @@ export default function StatusView(props: BoxProps) {
       {status.isOn && runningProfile !== undefined ? (
         <Card>
           <Typography>Running {runningProfile!.name}</Typography>
+          <Typography>Relay on for {status.relayOnTime / 1000}sec</Typography>
+          <Typography>Update every {status.updateRate / 1000}sec</Typography>
           <Button onClick={stopRelay}>Stop</Button>
           <Typography>
             Current step {Math.round(status.stepTime / 1000)}sec
