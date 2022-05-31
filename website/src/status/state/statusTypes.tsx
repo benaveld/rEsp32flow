@@ -1,3 +1,4 @@
+import { StatusResponse } from "../statusApi";
 
 export const LOAD_STATUS_REQUEST = "LOAD_STATUS_REQUEST";
 export const LOAD_STATUS_SUCCESS = "LOAD_STATUS_SUCCESS";
@@ -9,7 +10,7 @@ interface LoadStatusRequest {
 
 interface LoadStatusSuccess {
   type: typeof LOAD_STATUS_SUCCESS;
-  payload: Omit<StatusState, "loading" | "error" | "history">;
+  payload: StatusResponse;
 }
 
 interface LoadStatusFailure {
@@ -23,23 +24,12 @@ export type StatusTypes =
   | LoadStatusSuccess
   | LoadStatusFailure;
 
-export interface StatusState {
+export type StatusState = StatusResponse & {
   loading: boolean;
   error: string | undefined;
-  isOn: boolean;
-  profileId: number;
-  profileStepIndex: number;
-  stepTime: number;
-  relayOnTime: number;
-  updateRate: number;
-  oven: number;
-  chip: number;
-  uptime: number; // milliseconds since start-up
   history: {
     uptime: number;
     oven: number;
     chip: number;
   }[];
-  fault: number;
-  faultText: string[];
 }

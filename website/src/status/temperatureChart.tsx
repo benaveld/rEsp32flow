@@ -8,11 +8,13 @@ import {
   ChartData,
   registerables,
 } from "chart.js";
+import { useTheme } from "@mui/material";
 
 ChartJS.register(...registerables);
 
 const TemperatureChart = () => {
   const { history } = useSelector((appState: AppState) => appState.statusState);
+  const { palette } = useTheme();
 
   const latestUptime = history.length > 0 ? history[history.length - 1].uptime : 0;
   const agedHistory = history.map((value) => {
@@ -26,8 +28,8 @@ const TemperatureChart = () => {
         data: agedHistory,
         pointRadius: 0,
         pointHitRadius: 0,
-        borderColor: "rgb(255, 99, 132)",
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
+        borderColor: palette.primary.main,
+        backgroundColor: palette.primary.light,
         parsing: {
           xAxisKey: "age",
           yAxisKey: "oven",
@@ -38,8 +40,8 @@ const TemperatureChart = () => {
         data: agedHistory,
         pointRadius: 0,
         pointHitRadius: 0,
-        borderColor: "rgb(53, 162, 235)",
-        backgroundColor: "rgba(53, 162, 235, 0.5)",
+        borderColor: palette.secondary.main,
+        backgroundColor: palette.secondary.light,
         parsing: {
           xAxisKey: "age",
           yAxisKey: "chip",
@@ -54,6 +56,7 @@ const TemperatureChart = () => {
     animation: false,
     plugins: {
       legend: {
+        display: false,
         position: "top" as const,
       },
     },

@@ -8,6 +8,22 @@ import { stopRelay } from "../relay/relayActions";
 import { AppState } from "../state";
 import { updateStatus } from "./state/statusActions";
 
+const ColoredBox = (props: { color: string } & BoxProps) => {
+  const { color, sx, ...other } = props;
+  return <Box sx={{
+    backgroundColor: color,
+    width: "0.8em",
+    height: "0.8em",
+    marginTop: "auto",
+    marginBottom: "auto",
+    marginRight: "0.1em",
+    marginLeft: "0.1em",
+    ...sx
+  }}
+  {...other}
+  />;
+};
+
 export default function StatusView(props: BoxProps) {
   const status = useSelector((appState: AppState) => appState.statusState);
   const { profiles } = useSelector(
@@ -28,8 +44,15 @@ export default function StatusView(props: BoxProps) {
 
   return (
     <Box {...props}>
-      <Typography noWrap>Oven: {status.oven.toFixed(2)}</Typography>
-      <Typography noWrap>Chip: {status.chip.toFixed(2)}</Typography>
+      <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <ColoredBox color="primary.main"/>
+        <Typography noWrap>Oven: {status.oven.toFixed(2)}°C</Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <ColoredBox color="secondary.main"/>
+        <Typography noWrap>Chip: {status.chip.toFixed(2)}°C</Typography>
+      </Box>
 
       {status.isOn && runningProfile !== undefined ? (
         <Card>
@@ -60,17 +83,17 @@ export default function StatusView(props: BoxProps) {
 
       {status.fault !== 0 && (
         <Card>
-          <Typography>Sensor fault: {status.fault}</Typography>
+          <Typography color="error">Sensor fault: {status.fault}</Typography>
           {status.faultText.map((value, index) => (
-            <Typography key={index}>{value}</Typography>
+            <Typography key={index} color="error">
+              {value}
+            </Typography>
           ))}
         </Card>
       )}
 
       {status.error !== undefined && (
-        <Card>
-          <Typography>{status.error}</Typography>
-        </Card>
+        <Typography color="error">{status.error}</Typography>
       )}
     </Box>
   );
