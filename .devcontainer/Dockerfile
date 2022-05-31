@@ -1,32 +1,30 @@
-FROM petewall/platformio:latest
+FROM alpine:3
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-  curl \
+RUN apk -q add \
+  doas \
+  py3-pip \
+  gcompat \
   git \
-  nodejs \
-  npm \
-  sudo \
-  && rm -rf /var/lib/apt/lists/*
+  npm
 
-RUN pio upgrade \
-  && pio pkg install -g -p espressif32 \
-  && pio system prune -f
-
-RUN mkdir -p /etc/udev/rules.d \
-  && curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules > /etc/udev/rules.d/99-platformio-udev.rules 
+RUN pip install -U \
+  platformio 
 
 # Setup a non-root user named "dev"
 ARG USERNAME=dev
 ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-ARG DEVICE_GROUP=dialout,uucp
+ARG PASSWORD=123
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -G sudo,$DEVICE_GROUP \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME
+RUN adduser --disabled-password -u $USER_UID -G users $USERNAME \
+  && adduser $USERNAME dialout \
+  && adduser $USERNAME uucp \
+  && adduser $USERNAME wheel \
+  && echo "permit persist :wheel" >> /etc/doas.d/doas.conf \
+  && echo "root:$PASSWORD"|chpasswd \
+  && echo "$USERNAME:$PASSWORD"|chpasswd 
 
-# [Optional] Set the default user. Omit if you want to keep the default as root.
 USER $USERNAME
 
-ENTRYPOINT [ "/bin/bash" ] 
+RUN pio pkg install -g \
+  -p espressif32 \
+  && pio system prune -f

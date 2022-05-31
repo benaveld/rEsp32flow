@@ -1,18 +1,30 @@
 {
   "name": "rEsp32flow",
-  "dockerComposeFile": ["docker-compose.yml", "../website/docker-compose.yml"],
-  "service": "resp32flow",
-  "shutdownAction": "stopCompose",
   "remoteUser": "dev",
+  "containerUser": "dev",
 
   "workspaceFolder": "/app",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
+    "source=/dev,target=/dev,type=bind,consistency=consistent",
+    "source=pio,target=/app/.pio,type=volume",
+    "source=vscode,target=/app/.vscode,type=volume",
+    "source=data,target=/app/data,type=volume", // linked with /app/website/build
+    "source=data,target=/app/website/build,type=volume", // linked with /app/data
+    "source=node_modules,target=/app/website/node_modules,type=volume"
+  ],
+  "runArgs": [
+    "--device-cgroup-rule=c 188:* rwm" 
+  ],
 
   "settings": {
-    "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
-    "platformio-ide.disablePIOHomeStartup": true,
-    "platformio-ide.customPATH": "/usr/local/bin",
+    "platformio-ide.customPATH": "/usr/bin",
     "platformio-ide.useBuiltinPIOCore": false,
-    "terminal.integrated.defaultProfile.linux": "bash"
+    "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
+    "platformio-ide.disablePIOHomeStartup": true
   },
 
   "extensions": [
