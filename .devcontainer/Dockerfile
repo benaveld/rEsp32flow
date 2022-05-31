@@ -1,14 +1,13 @@
 FROM alpine:3
 
 RUN apk -q add \
-  doas \
-  py3-pip \
-  gcompat \
-  git \
-  npm
-
-RUN pip install -U \
-  platformio 
+    doas \
+    py3-pip \
+    gcompat \
+    git \
+    npm \
+  && pip install -U platformio \
+  && npm i -g npm-check-updates 
 
 # Setup a non-root user named "dev"
 ARG USERNAME=dev
