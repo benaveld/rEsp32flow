@@ -9,7 +9,7 @@ const ProfileApi = {
   async get(): Promise<Profile[] | Error> {
     const response = await fetch(url, { mode: "cors" });
     if (response.ok) return await response.json();
-    return new Error(response.statusText);
+    throw new Error(response.statusText);
   },
 
   async put(profile: Profile, step?: ProfileStep, stepIndex?: number) : Promise<Profile | Error> {
@@ -34,7 +34,7 @@ const ProfileApi = {
     }
 
     if (response.ok) return profile;
-    return new Error(response.statusText);
+    throw new Error(response.statusText);
   },
 
   async delete(profile: Profile, stepIndex?: number) {
@@ -48,7 +48,7 @@ const ProfileApi = {
       mode: "cors",
     });
     if (response.ok) return null;
-    return new Error(response.statusText);
+    throw new Error(response.statusText);
   },
 };
 

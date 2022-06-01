@@ -1,38 +1,36 @@
 import { Box, BoxProps, Button, Card, Typography } from "@mui/material";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
-import { Dispatch } from "redux";
+import { useAppDispatch, useAppSelector } from "../hooks";
 import { ProfileStepView } from "../profile/profileStepView";
 import { stopRelay } from "../relay/relayActions";
-import { AppState } from "../state";
 import { updateStatus } from "./state/statusActions";
 
 const ColoredBox = (props: { color: string } & BoxProps) => {
   const { color, sx, ...other } = props;
-  return <Box sx={{
-    backgroundColor: color,
-    width: "0.8em",
-    height: "0.8em",
-    marginTop: "auto",
-    marginBottom: "auto",
-    marginRight: "0.1em",
-    marginLeft: "0.1em",
-    ...sx
-  }}
-  {...other}
-  />;
+  return (
+    <Box
+      sx={{
+        backgroundColor: color,
+        width: "0.8em",
+        height: "0.8em",
+        marginTop: "auto",
+        marginBottom: "auto",
+        marginRight: "0.1em",
+        marginLeft: "0.1em",
+        ...sx,
+      }}
+      {...other}
+    />
+  );
 };
 
 export default function StatusView(props: BoxProps) {
-  const status = useSelector((appState: AppState) => appState.statusState);
-  const { profiles } = useSelector(
-    (appState: AppState) => appState.profileState
-  );
+  const status = useAppSelector((appState) => appState.statusState);
+  const { profiles } = useAppSelector((appState) => appState.profileState);
 
   const runningProfile = status.isOn ? profiles[status.profileId] : undefined;
 
-  const dispatch: Dispatch<any> = useDispatch();
+  const dispatch = useAppDispatch();
   useEffect(() => {
     const interval = setInterval(() => {
       if (!status.loading) dispatch(updateStatus());
@@ -45,12 +43,12 @@ export default function StatusView(props: BoxProps) {
   return (
     <Box {...props}>
       <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <ColoredBox color="primary.main"/>
+        <ColoredBox color="primary.main" />
         <Typography noWrap>Oven: {status.oven.toFixed(2)}°C</Typography>
       </Box>
 
       <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <ColoredBox color="secondary.main"/>
+        <ColoredBox color="secondary.main" />
         <Typography noWrap>Chip: {status.chip.toFixed(2)}°C</Typography>
       </Box>
 

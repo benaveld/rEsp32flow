@@ -2,7 +2,7 @@ import { baseUrl } from "../config";
 
 const url = baseUrl + "/api/status.json";
 
-export interface StatusResponse {
+export interface StatusGetResponse {
   isOn: boolean;
   profileId: number;
   profileStepIndex: number;
@@ -17,7 +17,7 @@ export interface StatusResponse {
 }
 
 const StatusApi = {
-  async get(): Promise<StatusResponse> {
+  async get(): Promise<StatusGetResponse | never> {
     const response = await fetch(url, { mode: "cors" });
     if (response.ok) return await response.json();
     throw new Error(response.status + ": " + response.statusText);

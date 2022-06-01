@@ -1,3 +1,7 @@
+/**
+ * @deprecated
+ * Use the inbuilt array.concat method instead 
+ * */
 export function merge(lists: any[][]) {
   let result: any[] = [];
   lists.forEach((value) => {

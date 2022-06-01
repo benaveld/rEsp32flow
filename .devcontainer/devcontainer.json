@@ -16,15 +16,14 @@
     "source=data,target=/app/website/build,type=volume", // linked with /app/data
     "source=node_modules,target=/app/website/node_modules,type=volume"
   ],
-  "runArgs": [
-    "--device-cgroup-rule=c 188:* rwm" 
-  ],
+  "runArgs": ["--device-cgroup-rule=c 188:* rwm"],
 
   "settings": {
     "platformio-ide.customPATH": "/usr/bin",
     "platformio-ide.useBuiltinPIOCore": false,
     "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
-    "platformio-ide.disablePIOHomeStartup": true
+    "platformio-ide.disablePIOHomeStartup": true,
+    "cSpell.words": ["reduxjs"]
   },
 
   "extensions": [

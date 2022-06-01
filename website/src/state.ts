@@ -1,40 +1,27 @@
-import { createStore, applyMiddleware } from "redux";
-import ReduxThunk from "redux-thunk";
-import { composeWithDevTools } from "@redux-devtools/extension";
-import { combineReducers } from "redux";
 import {
   initialProfileState,
   ProfileReducer,
 } from "./profile/state/profileReducer";
-import { ProfileState } from "./profile/state/profileTypes";
-import {
-  initialStatusState,
-  StatusReducer,
-} from "./status/state/statusReducer";
-import { StatusState } from "./status/state/statusTypes";
+import { createLogger } from "redux-logger";
+import { configureStore } from "@reduxjs/toolkit";
+import statusSlice from "./status/state/statusSlice";
 
-const reducer = combineReducers({
-  profileState: ProfileReducer,
-  statusState: StatusReducer,
+const logger = createLogger({
+  // Change this to log a redux action, true -> log 
+  predicate: (getState, action, logEntry) => action.type === undefined,
 });
 
-export default function configureStore(preloadedState: any) {
-  const middlewares = [ReduxThunk];
-  const middlewareEnhancer = applyMiddleware(...middlewares);
-  const enhancer = composeWithDevTools(middlewareEnhancer);
+export const store = configureStore({
+  reducer: {
+    profileState: ProfileReducer,
+    statusState: statusSlice.reducer,
+  },
+  preloadedState: {
+    profileState: initialProfileState,
+    statusState: statusSlice.getInitialState(),
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
+});
 
-  const store = createStore(reducer, preloadedState, enhancer);
-  return store;
-}
-
-export interface AppState {
-  profileState: ProfileState;
-  statusState: StatusState;
-}
-
-export const initialAppState: AppState = {
-  profileState: initialProfileState,
-  statusState: initialStatusState,
-};
-
-export const store = configureStore(initialAppState);
+export type AppState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch

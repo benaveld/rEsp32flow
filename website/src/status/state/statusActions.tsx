@@ -1,23 +1,13 @@
-import { Action } from "redux";
-import { ThunkAction } from "redux-thunk";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import StatusApi from "../statusApi";
-import { LOAD_STATUS_FAILURE, LOAD_STATUS_REQUEST, LOAD_STATUS_SUCCESS, StatusState } from "./statusTypes";
 
-export function updateStatus(): ThunkAction<void, StatusState, null, Action<string>>
-{
-  return async (dispatch: any) => {
-    dispatch({type: LOAD_STATUS_REQUEST});
+export const updateStatus = createAsyncThunk(
+  "status/update",
+  async (_,{rejectWithValue}) => {
     try {
-      const response = await StatusApi.get();
-      return dispatch({
-        type: LOAD_STATUS_SUCCESS,
-        payload: response,
-      });
+      return await StatusApi.get();
     } catch (e){
-      return dispatch({
-        type: LOAD_STATUS_FAILURE,
-        payload: e,
-      });
+      return rejectWithValue(e);
     }
   }
-}
+)
