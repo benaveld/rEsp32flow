@@ -11,7 +11,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { merge } from "../myUtils";
 import { ProfileStep } from "./profileStep";
 
 type createActionProps = {
@@ -35,7 +34,7 @@ function addAction(
   props: createActionProps
 ) {
   if (!isEnabled) return actions;
-  return merge([actions, [createAction(props)]]);
+  return actions.concat(createAction(props));
 }
 
 interface ProfileStepViewProps {

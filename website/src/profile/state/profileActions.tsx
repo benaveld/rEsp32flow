@@ -1,105 +1,42 @@
-import { Action } from "redux";
-import { ThunkAction } from "redux-thunk";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import { Profile } from "../profile";
 import ProfileApi from "../profileApi";
 import { ProfileStep } from "../profileStep";
-import {
-  DELETE_PROFILE_FAILURE,
-  DELETE_PROFILE_REQUEST,
-  DELETE_PROFILE_SUCCESS,
-  EDIT_PROFILE_STEP,
-  LOAD_PROFILE_FAILURE,
-  LOAD_PROFILE_REQUEST,
-  LOAD_PROFILE_SUCCESS,
-  ProfileState,
-  SAVE_PROFILE_FAILURE,
-  SAVE_PROFILE_REQUEST,
-  SAVE_PROFILE_SUCCESS,
-} from "./profileTypes";
 
-export function loadProfiles(): ThunkAction<
-  void,
-  ProfileState,
-  null,
-  Action<string>
-> {
-  return async (dispatch: any) => {
-    dispatch({ type: LOAD_PROFILE_REQUEST });
+export const loadProfiles = createAsyncThunk(
+  "profile/load",
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await ProfileApi.get();
-      return dispatch({
-        type: LOAD_PROFILE_SUCCESS,
-        payload: response,
-      });
+      return await ProfileApi.get();
     } catch (e) {
-      return dispatch({ type: LOAD_PROFILE_FAILURE, payload: e });
+      return rejectWithValue(e);
     }
-  };
-}
+  }
+);
 
-export function saveProfile(
-  profile: Profile,
-  step?: ProfileStep,
-  stepIndex?: number
-): ThunkAction<void, ProfileState, null, Action<string>> {
-  return async (dispatch: any) => {
-    dispatch({ type: SAVE_PROFILE_REQUEST });
+export const saveProfile = createAsyncThunk(
+  "profile/save",
+  async (props: {profile: Profile, step?: ProfileStep, stepIndex?: number}, { rejectWithValue }) => {
+    const {profile, step, stepIndex} = props;
     try {
-      if (stepIndex !== undefined && step !== undefined) {
-        profile.steps[stepIndex] = step;
-      }
-      const response = await ProfileApi.put(profile, step, stepIndex);
-      return dispatch({
-        type: SAVE_PROFILE_SUCCESS,
-        payload: response,
-      });
+      return await ProfileApi.put(profile, step, stepIndex);
     } catch (e) {
-      return dispatch({ type: SAVE_PROFILE_FAILURE, payload: e });
+      return rejectWithValue(e);
     }
-  };
-}
+  }
+);
 
-export function deleteProfile(
-  profile: Profile,
-  stepIndex?: number
-): ThunkAction<void, ProfileState, null, Action<string>> {
-  return async (dispatch: any) => {
-    dispatch({ type: DELETE_PROFILE_REQUEST });
+export const deleteProfile = createAsyncThunk(
+  "profile/delete",
+  async (
+    props: { profile: Profile; stepIndex?: number },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await ProfileApi.delete(profile, stepIndex);
-      return dispatch({
-        type: DELETE_PROFILE_SUCCESS,
-        payload: { profileId: profile.id, stepIndex, response },
-      });
+      await ProfileApi.delete(props.profile, props.stepIndex);
+      return props;
     } catch (e) {
-      return dispatch({ type: DELETE_PROFILE_FAILURE, payload: e });
+      return rejectWithValue(e);
     }
-  };
-}
-
-export function editProfileStep(
-  profile: Profile,
-  step: ProfileStep,
-  stepIndex?: number
-): ThunkAction<void, ProfileState, null, Action<string>> {
-  return async (dispatch: any) => {
-    dispatch({
-      type: EDIT_PROFILE_STEP,
-      payload: { profile, step, stepIndex: stepIndex ?? profile.steps.length },
-    });
-  };
-}
-
-export function stopEditingProfileStep(): ThunkAction<
-  void,
-  ProfileState,
-  null,
-  Action<string>
-> {
-  return async (dispatch: any) => {
-    dispatch({
-      type: EDIT_PROFILE_STEP,
-      payload: undefined,
-    });
-  };
-}
+  }
+);

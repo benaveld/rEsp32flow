@@ -13,10 +13,8 @@ import {
   Paper,
   PaperProps,
 } from "@mui/material";
-import { Dispatch, useEffect, useState, SyntheticEvent } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
-import { AppState } from "../state";
+import { useEffect, useState, SyntheticEvent } from "react";
+import { useAppDispatch, useAppSelector } from "../hooks";
 import { getUniqId, Profile } from "./profile";
 import { ProfileView } from "./profileView";
 import { loadProfiles, saveProfile } from "./state/profileActions";
@@ -24,10 +22,10 @@ import { loadProfiles, saveProfile } from "./state/profileActions";
 export default function ProfileList(props: PaperProps) {
   const [open, setOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
-  const dispatch: Dispatch<any> = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const { profiles, error } = useSelector(
-    (appState: AppState) => appState.profileState
+  const { profiles, error } = useAppSelector(
+    (appState) => appState.profileState
   );
 
   const handleClickOpen = () => setOpen(true);
@@ -38,7 +36,7 @@ export default function ProfileList(props: PaperProps) {
     handleClose();
     const id = getUniqId(profiles);
     const profile = new Profile({ id, name: newProfileName });
-    dispatch(saveProfile(profile));
+    dispatch(saveProfile({ profile }));
   };
 
   const handleNewProfileNameChange = (

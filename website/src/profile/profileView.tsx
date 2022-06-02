@@ -8,21 +8,17 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { useSelector } from "react-redux";
-import { useDispatch } from "react-redux";
-import { Dispatch } from "redux";
+import { useAppDispatch, useAppSelector } from "../hooks";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
 import { startRelay } from "../relay/relayActions";
-import { AppState } from "../state";
 import { Profile } from "./profile";
 import { ProfileStep } from "./profileStep";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
 import {
   deleteProfile,
-  editProfileStep,
-  stopEditingProfileStep,
 } from "./state/profileActions";
+import { editProfileStep, stopEditingProfileStep } from "./state/profileSlice";
 
 interface ProfileViewProps {
   profile: Profile;
@@ -31,8 +27,8 @@ interface ProfileViewProps {
 
 export function ProfileView(props: ProfileViewProps) {
   const { profile } = props;
-  const { editingProfileStep } = useSelector(
-    (appState: AppState) => appState.profileState
+  const { editingProfileStep } = useAppSelector(
+    (appState) => appState.profileState
   );
 
   const editingStepIndex =
@@ -41,21 +37,21 @@ export function ProfileView(props: ProfileViewProps) {
       : null;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const dispatch: Dispatch<any> = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const addStep = () => dispatch(editProfileStep(profile, new ProfileStep()));
-  const setEditStep = (index?: number) => {
-    if (index === undefined) {
+  const addStep = () => dispatch(editProfileStep({profile, step: new ProfileStep()}));
+  const setEditStep = (stepIndex?: number) => {
+    if (stepIndex === undefined) {
       return dispatch(stopEditingProfileStep());
     }
-    dispatch(editProfileStep(profile, profile.steps[index], index));
+    dispatch(editProfileStep({profile, step: profile.steps[stepIndex], stepIndex}));
   };
 
-  const onDeleteStep = (index: number) =>
-    dispatch(deleteProfile(profile, index));
+  const onDeleteStep = (stepIndex: number) =>
+    dispatch(deleteProfile({ profile, stepIndex }));
 
   const onDeleteProfile = (doDelete: boolean) => {
-    if (doDelete) dispatch(deleteProfile(profile));
+    if (doDelete) dispatch(deleteProfile({ profile }));
     setDeleteDialogOpen(false);
   };
 
@@ -90,8 +86,8 @@ export function ProfileView(props: ProfileViewProps) {
           )
         )}
         {profile.steps.length === editingStepIndex && (
-            <ProfileStepForm key={editingStepIndex} />
-          )}
+          <ProfileStepForm key={editingStepIndex} />
+        )}
       </AccordionDetails>
 
       <AccordionActions>

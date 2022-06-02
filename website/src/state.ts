@@ -1,10 +1,7 @@
-import {
-  initialProfileState,
-  ProfileReducer,
-} from "./profile/state/profileReducer";
 import { createLogger } from "redux-logger";
 import { configureStore } from "@reduxjs/toolkit";
 import statusSlice from "./status/state/statusSlice";
+import profileSlice from "./profile/state/profileSlice";
 
 const logger = createLogger({
   // Change this to log a redux action, true -> log 
@@ -13,11 +10,11 @@ const logger = createLogger({
 
 export const store = configureStore({
   reducer: {
-    profileState: ProfileReducer,
+    profileState: profileSlice.reducer,
     statusState: statusSlice.reducer,
   },
   preloadedState: {
-    profileState: initialProfileState,
+    profileState: profileSlice.getInitialState(),
     statusState: statusSlice.getInitialState(),
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),

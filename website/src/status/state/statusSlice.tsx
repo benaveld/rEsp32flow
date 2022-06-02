@@ -4,7 +4,7 @@ import { updateStatus } from "./statusActions";
 
 const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
-export const initialStatusState: StatusState = {
+const initialState = {
   loading: false,
   error: undefined,
   isOn: false,
@@ -19,20 +19,21 @@ export const initialStatusState: StatusState = {
   faultText: [],
   relayOnTime: 0,
   updateRate: 0,
-};
+} as StatusState;
 
 const insertAndCleanHistory = (
   history: StatusState["history"],
   update: typeof history[number],
   discardOlder: number
 ) =>
-  history.concat([update])
+  history
+    .concat([update])
     .filter((value) => update.uptime - discardOlder <= value.uptime)
     .sort((a, b) => a.uptime - b.uptime);
 
 const statusSlice = createSlice({
   name: "status",
-  initialState: initialStatusState,
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(updateStatus.pending, (state, action) => {
@@ -48,7 +49,11 @@ const statusSlice = createSlice({
         loading: false,
         error: undefined,
         ...action.payload,
-        history: insertAndCleanHistory(state.history, action.payload, keepHistoryTime),
+        history: insertAndCleanHistory(
+          state.history,
+          action.payload,
+          keepHistoryTime
+        ),
       };
     });
 

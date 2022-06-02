@@ -8,19 +8,18 @@ import {
   InputAdornment,
   TextField,
 } from "@mui/material";
-import { Dispatch, SyntheticEvent, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
-import { AppState } from "../state";
+import { SyntheticEvent, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../hooks";
 import { ProfileStep } from "./profileStep";
-import { saveProfile, stopEditingProfileStep } from "./state/profileActions";
+import { saveProfile } from "./state/profileActions";
+import { stopEditingProfileStep } from "./state/profileSlice";
 
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export function ProfileStepForm(props: ProfileStepFormProps) {
-  const { profile, stepIndex, ...editingProfile} = useSelector((appState: AppState) => appState.profileState.editingProfileStep!);
+  const { profile, stepIndex, ...editingProfile} = useAppSelector((appState) => appState.profileState.editingProfileStep!);
   const [step, setStep] = useState(editingProfile.step);
-  const dispatch: Dispatch<any> = useDispatch();
+  const dispatch= useAppDispatch();
 
   const handleChange =
     (prop: keyof ProfileStep) =>
@@ -35,7 +34,7 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    dispatch(saveProfile(profile, step, stepIndex));
+    dispatch(saveProfile({profile, step, stepIndex}));
     dispatch(stopEditingProfileStep());
   };
 

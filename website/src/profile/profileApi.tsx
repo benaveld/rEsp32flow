@@ -1,18 +1,17 @@
 import { baseUrl } from "../config";
-import { merge } from "../myUtils";
 import { Profile } from "./profile";
 import { ProfileStep } from "./profileStep";
 
 const url = baseUrl + "/api/profiles.json";
 
 const ProfileApi = {
-  async get(): Promise<Profile[] | Error> {
+  async get(): Promise<Profile[]> {
     const response = await fetch(url, { mode: "cors" });
     if (response.ok) return await response.json();
     throw new Error(response.statusText);
   },
 
-  async put(profile: Profile, step?: ProfileStep, stepIndex?: number) : Promise<Profile | Error> {
+  async put(profile: Profile, step?: ProfileStep, stepIndex?: number) : Promise<Profile> {
     let requestUrl = url + "?id=" + profile.id;
     if (step !== undefined && stepIndex !== undefined) {
       requestUrl += "&stepId=" + stepIndex;
@@ -27,7 +26,7 @@ const ProfileApi = {
 
     if (step !== undefined && stepIndex !== undefined) {
       if (stepIndex === profile.steps.length) {
-        profile.steps = merge([profile.steps, [step]]);
+        profile.steps = profile.steps.concat(step);
       } else {
         profile.steps[stepIndex] = step;
       }
