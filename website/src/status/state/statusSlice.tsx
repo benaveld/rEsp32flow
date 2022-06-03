@@ -27,7 +27,7 @@ const insertAndCleanHistory = (
   discardOlder: number
 ) =>
   history
-    .concat([update])
+    .concat(update)
     .filter((value) => update.uptime - discardOlder <= value.uptime)
     .sort((a, b) => a.uptime - b.uptime);
 

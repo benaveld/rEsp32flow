@@ -11,7 +11,11 @@ const ProfileApi = {
     throw new Error(response.statusText);
   },
 
-  async put(profile: Profile, step?: ProfileStep, stepIndex?: number) : Promise<Profile> {
+  async put(
+    profile: Profile,
+    step?: ProfileStep,
+    stepIndex?: number
+  ): Promise<Profile> {
     let requestUrl = url + "?id=" + profile.id;
     if (step !== undefined && stepIndex !== undefined) {
       requestUrl += "&stepId=" + stepIndex;
@@ -19,7 +23,7 @@ const ProfileApi = {
 
     const response = await fetch(requestUrl, {
       method: "PUT",
-      body: JSON.stringify(step === undefined ? profile : step),
+      body: JSON.stringify(step ?? profile),
       headers: { "Content-Type": "application/json" },
       mode: "cors",
     });

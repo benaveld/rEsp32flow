@@ -5,7 +5,7 @@ import profileSlice from "./profile/state/profileSlice";
 
 const logger = createLogger({
   // Change this to log a redux action, true -> log 
-  predicate: (getState, action, logEntry) => action.type === undefined,
+  predicate: (getState, action, logEntry) => Boolean(logEntry?.error),
 });
 
 export const store = configureStore({

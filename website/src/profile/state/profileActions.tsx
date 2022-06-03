@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { getErrorMessage } from "../../errorUtils";
 import { Profile } from "../profile";
 import ProfileApi from "../profileApi";
 import { ProfileStep } from "../profileStep";
@@ -9,7 +10,7 @@ export const loadProfiles = createAsyncThunk(
     try {
       return await ProfileApi.get();
     } catch (e) {
-      return rejectWithValue(e);
+      return rejectWithValue(getErrorMessage(e));
     }
   }
 );
@@ -21,7 +22,7 @@ export const saveProfile = createAsyncThunk(
     try {
       return await ProfileApi.put(profile, step, stepIndex);
     } catch (e) {
-      return rejectWithValue(e);
+      return rejectWithValue(getErrorMessage(e));
     }
   }
 );
@@ -36,7 +37,7 @@ export const deleteProfile = createAsyncThunk(
       await ProfileApi.delete(props.profile, props.stepIndex);
       return props;
     } catch (e) {
-      return rejectWithValue(e);
+      return rejectWithValue(getErrorMessage(e));
     }
   }
 );

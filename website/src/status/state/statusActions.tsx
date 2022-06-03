@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { getErrorMessage } from "../../errorUtils";
 import StatusApi from "../statusApi";
 
 export const updateStatus = createAsyncThunk(
@@ -7,7 +8,7 @@ export const updateStatus = createAsyncThunk(
     try {
       return await StatusApi.get();
     } catch (e){
-      return rejectWithValue(e);
+      return rejectWithValue(getErrorMessage(e));
     }
   }
 )
