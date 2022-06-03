@@ -1,6 +1,8 @@
 FROM alpine:3
 
 RUN apk -q add \
+    bash-completion \
+    curl \
     doas \
     gcompat \
     git \
@@ -10,12 +12,15 @@ RUN apk -q add \
   && pip install -U platformio \
   && npm i -g npm-check-updates 
 
+RUN mkdir -p /etc/udev/rules.d/ \
+  && curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules > /etc/udev/rules.d/99-platformio-udev.rules
+
 # Setup a non-root user named "dev"
 ARG USERNAME=dev
 ARG USER_UID=1000
 ARG PASSWORD=123
 
-RUN adduser --disabled-password -u $USER_UID -G users $USERNAME \
+RUN adduser --disabled-password -u $USER_UID -G users -s "/bin/bash" $USERNAME \
   && adduser $USERNAME dialout \
   && adduser $USERNAME uucp \
   && adduser $USERNAME wheel \
