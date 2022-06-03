@@ -36,13 +36,11 @@ const statusSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(updateStatus.pending, (state, action) => {
-      state.loading = true;
-    });
-
+    // Update status
     builder.addCase(updateStatus.fulfilled, (state, action) => {
       if (action.payload.uptime < state.uptime) {
         return {
+          ...initialState,
           ...action.payload,
           loading: false,
           error: "Oven restarted.",
@@ -63,6 +61,12 @@ const statusSlice = createSlice({
       };
     });
 
+    // Loading
+    builder.addCase(updateStatus.pending, (state, action) => {
+      state.loading = true;
+    });
+
+    // Handle error
     builder.addCase(updateStatus.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message;

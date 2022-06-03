@@ -8,7 +8,7 @@ namespace resp32flow
   class RelayController;
   class ProfileHandler;
 
-  namespace webserver
+  namespace webServer
   {
     namespace api
     {

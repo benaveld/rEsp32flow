@@ -7,7 +7,7 @@ namespace resp32flow
 {
   class ProfileHandler;
 
-  namespace webserver
+  namespace webServer
   {
     namespace api
     {

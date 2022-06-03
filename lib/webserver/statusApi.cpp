@@ -3,7 +3,7 @@
 #include <temperatureSensorI.h>
 #include <AsyncJson.h>
 
-void resp32flow::webserver::respondStatusJson(resp32flow::RelayController *a_relayController, resp32flow::TemperatureSensorI *a_sensor, AsyncWebServerRequest *request)
+void resp32flow::webServer::respondStatusJson(resp32flow::RelayController *a_relayController, resp32flow::TemperatureSensorI *a_sensor, AsyncWebServerRequest *request)
 {
   auto response = new AsyncJsonResponse();
   auto doc = response->getRoot();

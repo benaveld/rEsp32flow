@@ -88,7 +88,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   m_server.serveStatic("/asset-manifest.json", SPIFFS, "/asset-manifest.json");
 
   m_server.on("/api/status.json", HTTP_GET, [a_temperatureSensor, a_relayController](AsyncWebServerRequest *request)
-              { resp32flow::webserver::respondStatusJson(a_relayController, a_temperatureSensor->getSensor(), request); });
+              { resp32flow::webServer::respondStatusJson(a_relayController, a_temperatureSensor->getSensor(), request); });
 
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
@@ -103,18 +103,18 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
                 request->send(response); });
 
   m_server.on("/api/profiles.json", HTTP_GET, [a_profileHandler](AsyncWebServerRequest *request)
-              { resp32flow::webserver::api::handleProfile(a_profileHandler, request); });
+              { resp32flow::webServer::api::handleProfile(a_profileHandler, request); });
   m_server.on("/api/profiles.json", HTTP_DELETE, [a_profileHandler](AsyncWebServerRequest *request)
-              { resp32flow::webserver::api::handleProfile(a_profileHandler, request); });
+              { resp32flow::webServer::api::handleProfile(a_profileHandler, request); });
 
   auto profileJsonHandler = new AsyncCallbackJsonWebHandler(
       "/api/profiles.json", [a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
-      { resp32flow::webserver::api::handleJsonProfile(a_profileHandler, request, json); },
+      { resp32flow::webServer::api::handleJsonProfile(a_profileHandler, request, json); },
       1024U);
   m_server.addHandler(profileJsonHandler);
 
   auto relayApiHandler = new AsyncCallbackJsonWebHandler("/api/relay.json", [a_relayController, a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
-                                                         { resp32flow::webserver::api::handleJsonRelay(a_relayController, a_profileHandler, request, json); });
+                                                         { resp32flow::webServer::api::handleJsonRelay(a_relayController, a_profileHandler, request, json); });
   m_server.addHandler(relayApiHandler);
 
   m_server.begin();

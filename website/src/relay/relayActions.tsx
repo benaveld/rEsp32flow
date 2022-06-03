@@ -1,7 +1,7 @@
 import RelayApi from "./relayApi"
 
 export function stopRelay(){
-  return RelayApi.put({stop: 1});
+  return RelayApi.put({stop: true});
 }
 
 export function startRelay(profileId: number){
