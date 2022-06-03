@@ -7,6 +7,7 @@ import {
   Grid,
   InputAdornment,
   TextField,
+  TextFieldProps,
 } from "@mui/material";
 import { SyntheticEvent, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
@@ -17,9 +18,11 @@ import { stopEditingProfileStep } from "./state/profileSlice";
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export function ProfileStepForm(props: ProfileStepFormProps) {
-  const { profile, stepIndex, ...editingProfile} = useAppSelector((appState) => appState.profileState.editingProfileStep!);
+  const { profile, stepIndex, ...editingProfile } = useAppSelector(
+    (appState) => appState.profileState.editingProfileStep!
+  );
   const [step, setStep] = useState(editingProfile.step);
-  const dispatch= useAppDispatch();
+  const dispatch = useAppDispatch();
 
   const handleChange =
     (prop: keyof ProfileStep) =>
@@ -34,7 +37,7 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    dispatch(saveProfile({profile, step, stepIndex}));
+    dispatch(saveProfile({ profile, step, stepIndex }));
     dispatch(stopEditingProfileStep());
   };
 
@@ -42,6 +45,12 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
     event.preventDefault();
     dispatch(stopEditingProfileStep());
   };
+
+  const commonTextFieldValues = {
+    variant: "standard",
+    type: "number",
+    fullWidth: true,
+  } as TextFieldProps;
 
   return (
     <Card
@@ -55,28 +64,24 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
         <Grid container spacing={1} columns={6}>
           <Grid item xs={3}>
             <TextField
-              variant="standard"
-              label="temperature"
-              type="number"
+              {...commonTextFieldValues}
+              label="Temperature"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">°C</InputAdornment>
                 ),
               }}
-              fullWidth={true}
               value={step.temperature}
               onChange={handleChange("temperature")}
             />
           </Grid>
           <Grid item xs={3}>
             <TextField
-              variant="standard"
+              {...commonTextFieldValues}
               label="timer"
-              type="number"
-              fullWidth={true}
               InputProps={{
                 endAdornment: (
-                  <InputAdornment position="end">ms</InputAdornment>
+                  <InputAdornment position="end">sec</InputAdornment>
                 ),
               }}
               value={step.timer}
@@ -85,30 +90,24 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
           </Grid>
           <Grid item xs={2}>
             <TextField
-              variant="standard"
+              {...commonTextFieldValues}
               label="Kp"
-              type="number"
-              fullWidth={true}
               value={step.Kp}
               onChange={handleChange("Kp")}
             />
           </Grid>
           <Grid item xs={2}>
             <TextField
-              variant="standard"
+              {...commonTextFieldValues}
               label="Ki"
-              type="number"
-              fullWidth={true}
               value={step.Ki}
               onChange={handleChange("Ki")}
             />
           </Grid>
           <Grid item xs={2}>
             <TextField
-              variant="standard"
+              {...commonTextFieldValues}
               label="Kd"
-              type="number"
-              fullWidth={true}
               value={step.Kd}
               onChange={handleChange("Kd")}
             />

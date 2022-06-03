@@ -14,7 +14,7 @@ namespace resp32flow
   class RelayController
   {
   private:
-    constexpr static TickType_t MUTEX_BLOCK_DELAY = 10.0 / portTICK_PERIOD_MS; // 10ms
+    constexpr static TickType_t MUTEX_BLOCK_DELAY = 100.0 / portTICK_PERIOD_MS;
     constexpr static UBaseType_t TASK_PRIORITY = 10;
 
     const uint8_t m_relayPin;

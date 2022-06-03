@@ -56,7 +56,7 @@ const profileSlice = createSlice({
       if (id >= 0) {
         state.profiles[id] = action.payload;
       } else {
-        state.profiles = state.profiles.concat(action.payload);
+        state.profiles.push(action.payload);
       }
     });
 

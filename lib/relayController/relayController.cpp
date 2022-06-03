@@ -32,12 +32,14 @@ resp32flow::RelayController::~RelayController()
 
 void resp32flow::RelayController::start(const Profile &a_profile)
 {
-  if (m_selectedProfile != nullptr){
+  if (m_selectedProfile != nullptr)
+  {
     log_e("RelayController already on.");
     return;
   }
 
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while (xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE)
+    ;
   m_selectedProfile = &a_profile;
   m_profileStepIndex = 0;
   setupProfileStep();
@@ -55,7 +57,7 @@ void resp32flow::RelayController::start(const Profile &a_profile)
 
 void resp32flow::RelayController::stop()
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   vTaskDelete(m_taskHandler);
   digitalWrite(m_relayPin, LOW);
   m_selectedProfile = nullptr;
@@ -68,7 +70,7 @@ void resp32flow::RelayController::setupProfileStep()
   if (m_selectedProfile == nullptr)
     return;
   auto &&step = getCurrentProfileStep();
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   m_pid.setCoefficients(step->Kp, step->Ki, step->Kd);
   m_stepStartTime = millis();
   xSemaphoreGiveRecursive(m_mutex);
@@ -76,7 +78,7 @@ void resp32flow::RelayController::setupProfileStep()
 
 void resp32flow::RelayController::tick()
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   if (m_selectedProfile == nullptr)
   {
     xSemaphoreGiveRecursive(m_mutex);
@@ -117,7 +119,7 @@ auto resp32flow::RelayController::getCurentProfile() const -> decltype(m_selecte
 
 const resp32flow::ProfileStep *resp32flow::RelayController::getCurrentProfileStep() const
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   if (!isOn())
     return nullptr;
 
@@ -130,7 +132,7 @@ const resp32flow::ProfileStep *resp32flow::RelayController::getCurrentProfileSte
 
 resp32flow::time_t resp32flow::RelayController::getStepTimer() const
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   auto stepTime = 0;
   if (isOn())
     stepTime = millis() - m_stepStartTime;
@@ -140,7 +142,7 @@ resp32flow::time_t resp32flow::RelayController::getStepTimer() const
 
 void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) const
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   a_jsonObject["isOn"] = m_selectedProfile != nullptr;
   // a_jsonObject["sampleRate"] = m_sampleRate;
   if (isOn())

@@ -18,8 +18,6 @@ namespace resp32flow
     TemperatureMAX31856();
 
   public:
-    constexpr static TickType_t MUTEX_BLOCK_DELAY = 10.0 / portTICK_PERIOD_MS; // 10ms
-
     constexpr static int8_t MAX31856_CS = 5;
     constexpr static int8_t MAX31856_DATA_RDY = 16;
     constexpr static int8_t MAX31856_FLT = 17;

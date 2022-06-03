@@ -5,7 +5,7 @@ resp32flow::ProfileStep::ProfileStep(ArduinoJson::JsonVariant a_jsonObject)
       Ki(a_jsonObject["Ki"]),
       Kd(a_jsonObject["Kd"]),
       targetTemp(a_jsonObject["temperature"]),
-      timer(a_jsonObject["timer"])
+      timer(a_jsonObject["timer"].as<time_t>() * 1000)
 {
 }
 
@@ -15,7 +15,7 @@ void resp32flow::ProfileStep::toJSON(ArduinoJson::JsonObject a_jsonObject) const
   a_jsonObject["Ki"] = Ki;
   a_jsonObject["Kd"] = Kd;
   a_jsonObject["temperature"] = targetTemp;
-  a_jsonObject["timer"] = timer;
+  a_jsonObject["timer"] = timer / 1000;
 }
 
 resp32flow::Profile::Profile(int a_id) : name("no name"), id(a_id)

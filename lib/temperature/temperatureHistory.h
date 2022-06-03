@@ -10,7 +10,7 @@ namespace resp32flow
   class TemperatureHistory
   {
   public:
-    constexpr static TickType_t MUTEX_BLOCK_DELAY = 10.0 / portTICK_PERIOD_MS; // 10ms
+    constexpr static TickType_t MUTEX_BLOCK_DELAY = 100.0 / portTICK_PERIOD_MS;
     constexpr static size_t historySize = 60 * 30;                             // 30min at a sample rate of once every 1000 ms
     constexpr static UBaseType_t TASK_PRIORITY = 50;
 

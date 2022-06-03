@@ -41,8 +41,14 @@ const statusSlice = createSlice({
     });
 
     builder.addCase(updateStatus.fulfilled, (state, action) => {
-      if (action.payload.uptime === 0 || action.payload.oven === null)
-        return { ...state, loading: false, error: "Invalid response" };
+      if (action.payload.uptime < state.uptime) {
+        return {
+          ...action.payload,
+          loading: false,
+          error: "Oven restarted.",
+          history: insertAndCleanHistory([], action.payload, keepHistoryTime),
+        };
+      }
 
       return {
         ...state,

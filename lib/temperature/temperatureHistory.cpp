@@ -1,7 +1,7 @@
 #include <temperatureHistory.h>
 #include <math.h>
 
-void temperautreUpdateLoop(void *parameter)
+void temperatureUpdateLoop(void *parameter)
 {
   assert(parameter != nullptr || parameter != NULL);
   auto temperature = (resp32flow::TemperatureHistory *)parameter;
@@ -28,7 +28,7 @@ resp32flow::TemperatureHistory::~TemperatureHistory()
 
 void resp32flow::TemperatureHistory::begin()
 {
-  xTaskCreate(temperautreUpdateLoop, "temperature sensor task.", m_sampleRate, this, TASK_PRIORITY, &m_taskHandler);
+  xTaskCreate(temperatureUpdateLoop, "temperature sensor task.", 2048, this, TASK_PRIORITY, &m_taskHandler);
 }
 
 auto resp32flow::TemperatureHistory::getChipTempHistory() const -> const history_t &
@@ -43,7 +43,7 @@ auto resp32flow::TemperatureHistory::getOvenTempHistory() const -> const history
 
 void resp32flow::TemperatureHistory::_updateHistory()
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   m_chipHistory.push(m_sensor->getChipTemp());
   m_ovenHistory.push(m_sensor->getOvenTemp());
   xSemaphoreGiveRecursive(m_mutex);
@@ -51,7 +51,7 @@ void resp32flow::TemperatureHistory::_updateHistory()
 
 void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize) const
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
+  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
   a_jsonObject["historySampleRate"] = m_sampleRate;
   //TODO make to history with time.  {uptime: {oven, chip}}
   if (historySize > 0)

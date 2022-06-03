@@ -79,7 +79,7 @@ export function ProfileStepView(props: ProfileStepViewProps) {
       <CardHeader
         title={
           <Typography noWrap variant="h6">
-            At {step.temperature}°C for {step.timer / 1000}sec
+            At {step.temperature}°C for {step.timer}sec
           </Typography>
         }
         subheader={

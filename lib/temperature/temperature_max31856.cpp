@@ -1,10 +1,13 @@
 #include <Arduino.h>
 #include <temperature_max31856.h>
 #include <stdexcept>
+#include <functional>
+#include <utility>
+#include <freeRTOSUtils.h>
 
 resp32flow::TemperatureMAX31856 *resp32flow::TemperatureMAX31856::_ptrInstance = nullptr;
 
-void sensorFaultInterupt()
+void sensorFaultInterrupt()
 {
   auto sensor = resp32flow::TemperatureMAX31856::getInstance();
   sensor->_publicsToFaultSubscribers(sensor->getFault());
@@ -28,31 +31,25 @@ void resp32flow::TemperatureMAX31856::begin()
   m_thermo.setTempFaultThreshholds(MIN_OVEN_TEMPERATURE, MAX_OVEN_TEMPERATURE);
 
   pinMode(MAX31856_FLT, INPUT);
-  attachInterrupt(MAX31856_FLT, sensorFaultInterupt, FALLING);
+  attachInterrupt(MAX31856_FLT, sensorFaultInterrupt, FALLING);
 }
 
 resp32flow::temp_t resp32flow::TemperatureMAX31856::getOvenTemp()
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  auto &&temp = const_cast<Adafruit_MAX31856 *>(&m_thermo)->readThermocoupleTemperature();
-  xSemaphoreGiveRecursive(m_mutex);
-  return temp;
+  return rtosUtils::threadSafeRun<float>(m_mutex, [this]()
+                               { return this->m_thermo.readThermocoupleTemperature(); });
 }
 
 resp32flow::temp_t resp32flow::TemperatureMAX31856::getChipTemp()
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  auto &&temp = const_cast<Adafruit_MAX31856 *>(&m_thermo)->readCJTemperature();
-  xSemaphoreGiveRecursive(m_mutex);
-  return temp;
+  return rtosUtils::threadSafeRun<float>(m_mutex, [this]()
+                               { return this->m_thermo.readCJTemperature(); });
 }
 
 uint8_t resp32flow::TemperatureMAX31856::getFault()
 {
-  xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY);
-  auto &&fault = const_cast<Adafruit_MAX31856 *>(&m_thermo)->readFault();
-  xSemaphoreGiveRecursive(m_mutex);
-  return fault;
+  return rtosUtils::threadSafeRun<uint8_t>(m_mutex, [this]()
+                               { return this->m_thermo.readFault(); });
 }
 
 resp32flow::TemperatureMAX31856 *resp32flow::TemperatureMAX31856::getInstance()
