@@ -1,9 +1,7 @@
 import { Box, BoxProps, Button, Card, Typography } from "@mui/material";
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks";
+import { useAppSelector } from "../hooks";
 import { ProfileStepView } from "../profile/profileStepView";
 import { stopRelay } from "../relay/relayActions";
-import { updateStatus } from "./state/statusActions";
 
 const ColoredBox = (props: { color: string } & BoxProps) => {
   const { color, sx, ...other } = props;
@@ -27,18 +25,7 @@ const ColoredBox = (props: { color: string } & BoxProps) => {
 export default function StatusView(props: BoxProps) {
   const status = useAppSelector((appState) => appState.statusState);
   const { profiles } = useAppSelector((appState) => appState.profileState);
-
   const runningProfile = status.isOn ? profiles[status.profileId] : undefined;
-
-  const dispatch = useAppDispatch();
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!status.loading) dispatch(updateStatus());
-    }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [dispatch, status.loading]);
 
   return (
     <Box {...props}>
