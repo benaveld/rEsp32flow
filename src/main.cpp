@@ -24,6 +24,7 @@ void setup()
   temperatureHistory = new TemperatureHistory(temperatureSensor);
   temperatureHistory->begin();
 
+  pinMode(RELAY_PIN, OUTPUT);
   relayController = new RelayController(RELAY_PIN, temperatureSensor);
 
   profileHandler = new ProfileHandler();
