@@ -35,7 +35,7 @@ export default function ProfileList(props: PaperProps) {
     event.preventDefault();
     handleClose();
     const id = getUniqId(profiles);
-    const profile = new Profile({ id, name: newProfileName });
+    const profile = { id, name: newProfileName, steps: [] } as Profile;
     dispatch(saveProfile({ profile }));
   };
 

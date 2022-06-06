@@ -12,7 +12,7 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
 import { startRelay } from "../relay/relayActions";
 import { Profile } from "./profile";
-import { ProfileStep } from "./profileStep";
+import { initialProfileStep } from "./profileStep";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
 import {
@@ -39,7 +39,7 @@ export function ProfileView(props: ProfileViewProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch = useAppDispatch();
 
-  const addStep = () => dispatch(editProfileStep({profile, step: new ProfileStep()}));
+  const addStep = () => dispatch(editProfileStep({profile, step: initialProfileStep}));
   const setEditStep = (stepIndex?: number) => {
     if (stepIndex === undefined) {
       return dispatch(stopEditingProfileStep());
