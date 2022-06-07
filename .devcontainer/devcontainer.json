@@ -1,23 +1,25 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.234.0/containers/alpine
 {
-  "name": "rEsp32flow",
-  "remoteUser": "dev",
-  "containerUser": "dev",
+	"name": "Alpine",
+	"build": {
+		"dockerfile": "Dockerfile",
+		// Update 'VARIANT' to pick an Alpine version: 3.12, 3.13, 3.14, 3.15
+		"args": { "VARIANT": "3.15" }
+	},
 
-  "workspaceFolder": "/app",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
   "mounts": [
-    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
     "source=/dev,target=/dev,type=bind,consistency=consistent",
-    "source=pio,target=/app/.pio,type=volume",
-    "source=vscode,target=/app/.vscode,type=volume",
-    "source=data,target=/app/data,type=volume", // linked with /app/website/build
-    "source=data,target=/app/website/build,type=volume", // linked with /app/data
-    "source=node_modules,target=/app/website/node_modules,type=volume"
+    "source=pio,target=${containerWorkspaceFolder}/.pio,type=volume",
+    "source=vscode,target=${containerWorkspaceFolder}/.vscode,type=volume",
+    "source=data,target=${containerWorkspaceFolder}/data,type=volume", // linked with website/build
+    "source=data,target=${containerWorkspaceFolder}/website/build,type=volume", // linked with data
+    "source=node_modules,target=${containerWorkspaceFolder}/website/node_modules,type=volume"
   ],
-  "runArgs": ["--device-cgroup-rule=c 188:* rwm"],
 
+	// Replace when using a ptrace-based debugger like C++, Go, and Rust
+	// "runArgs": [ "--init", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+  "runArgs": ["--device-cgroup-rule=c 188:* rwm"],
   "settings": {
     "platformio-ide.customPATH": "/usr/bin",
     "platformio-ide.useBuiltinPIOCore": false,
@@ -33,5 +35,8 @@
     "dbaeumer.vscode-eslint",
     "KnisterPeter.vscode-github",
     "streetsidesoftware.code-spell-checker"
-  ]
+  ],
+
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
 }
