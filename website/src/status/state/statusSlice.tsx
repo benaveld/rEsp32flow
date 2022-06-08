@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, isPending, isRejectedWithValue } from "@reduxjs/toolkit";
 import { StatusState } from "./statusTypes";
 import { updateStatus } from "./statusActions";
 
@@ -36,6 +36,7 @@ const statusSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
+
     // Update status
     builder.addCase(updateStatus.fulfilled, (state, action) => {
       if (action.payload.uptime < state.uptime) {
@@ -62,14 +63,14 @@ const statusSlice = createSlice({
     });
 
     // Loading
-    builder.addCase(updateStatus.pending, (state, action) => {
+    builder.addMatcher(isPending, (state) => {
       state.loading = true;
     });
 
     // Handle error
-    builder.addCase(updateStatus.rejected, (state, action) => {
+    builder.addMatcher(isRejectedWithValue, (state, action) => {
       state.loading = false;
-      state.error = action.error.message;
+      state.error = action.payload as string;
     });
   },
 });
