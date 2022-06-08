@@ -36,7 +36,7 @@ export default function ProfileList(props: PaperProps) {
     handleClose();
     const id = getUniqId(profiles);
     const profile = { id, name: newProfileName, steps: [] } as Profile;
-    dispatch(saveProfile({ profile }));
+    dispatch(saveProfile(profile));
   };
 
   const handleNewProfileNameChange = (

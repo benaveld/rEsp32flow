@@ -1,10 +1,11 @@
 import {
   createSlice,
+  isAnyOf,
   isPending,
   isRejectedWithValue,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import { deleteProfile, loadProfiles, saveProfile } from "./profileActions";
+import { deleteProfile, loadProfiles, saveProfile, saveProfileStep } from "./profileActions";
 import { EditProfileStep, ProfileState } from "./profileTypes";
 
 const initialState = {
@@ -37,27 +38,12 @@ const profileSlice = createSlice({
   },
 
   extraReducers: (builder) => {
+
     // Load Profiles
     builder.addCase(loadProfiles.fulfilled, (state, action) => {
       state.loading = false;
       state.error = undefined;
       state.profiles = action.payload;
-    });
-
-    // Save Profile
-    builder.addCase(saveProfile.fulfilled, (state, action) => {
-      state.loading = false;
-      state.error = undefined;
-
-      const id = state.profiles.findIndex(
-        (value) => value.id === action.payload.id
-      );
-
-      if (id >= 0) {
-        state.profiles[id] = action.payload;
-      } else {
-        state.profiles = state.profiles.concat(action.payload);
-      }
     });
 
     // Delete Profile
@@ -79,15 +65,31 @@ const profileSlice = createSlice({
       );
     });
 
+    // Save Profile
+    builder.addMatcher(isAnyOf(saveProfile.fulfilled, saveProfileStep.fulfilled), (state, action) => {
+      state.loading = false;
+      state.error = undefined;
+
+      const index = state.profiles.findIndex(
+        (value) => value.id === action.payload.id
+      );
+
+      if (index >= 0) {
+        state.profiles = state.profiles.map((value, i) => index === i ? action.payload : value);
+      } else {
+        state.profiles = state.profiles.concat(action.payload);
+      }
+    });
+
     // Loading
-    builder.addMatcher(isPending(), (state) => {
+    builder.addMatcher(isPending, (state) => {
       state.loading = true;
     });
 
-    // Handle Rejected
-    builder.addMatcher(isRejectedWithValue(), (state, action) => {
+    // Handle Rejection
+    builder.addMatcher(isRejectedWithValue, (state, action) => {
       state.loading = false;
-      state.error = action.error.message;
+      state.error = action.payload as string;
     });
   },
 });

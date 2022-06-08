@@ -2,7 +2,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getErrorMessage } from "../../errorUtils";
 import { Profile } from "../profile";
 import ProfileApi from "../profileApi";
-import { ProfileStep } from "../profileStep";
+import { EditProfileStep } from "./profileTypes";
 
 export const loadProfiles = createAsyncThunk(
   "profile/load",
@@ -17,10 +17,20 @@ export const loadProfiles = createAsyncThunk(
 
 export const saveProfile = createAsyncThunk(
   "profile/save",
-  async (props: {profile: Profile, step?: ProfileStep, stepIndex?: number}, { rejectWithValue }) => {
-    const {profile, step, stepIndex} = props;
+  async (profile: Profile, { rejectWithValue }) => {
     try {
-      return await ProfileApi.put(profile, step, stepIndex);
+      return await ProfileApi.put(profile);
+    } catch (e) {
+      return rejectWithValue(getErrorMessage(e));
+    }
+  }
+);
+
+export const saveProfileStep = createAsyncThunk(
+  "profile/step/save",
+  async (props: EditProfileStep, { rejectWithValue }) => {
+    try {
+      return await ProfileApi.putStep(props);
     } catch (e) {
       return rejectWithValue(getErrorMessage(e));
     }

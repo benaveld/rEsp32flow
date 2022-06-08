@@ -1,11 +1,21 @@
 import { createLogger } from "redux-logger";
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, isRejected } from "@reduxjs/toolkit";
 import statusSlice from "./status/state/statusSlice";
 import profileSlice from "./profile/state/profileSlice";
 
 const logger = createLogger({
-  // Change this to log a redux action, true -> log 
-  predicate: (getState, action, logEntry) => Boolean(logEntry?.error),
+  // Change this to log a redux action, true -> log
+  predicate: (getState, action, logEntry) => {
+    if (isRejected(action)) return true;
+
+    // Example of logging a specific action
+    // if (typeof action.type === "string") {
+    //   const type = action.type as string;
+    //   if (type.startsWith(saveProfile.typePrefix)) return true;
+    // }
+
+    return Boolean(logEntry?.error);
+  },
 });
 
 export const store = configureStore({
@@ -21,4 +31,4 @@ export const store = configureStore({
 });
 
 export type AppState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch
+export type AppDispatch = typeof store.dispatch;

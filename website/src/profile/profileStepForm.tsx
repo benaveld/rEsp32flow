@@ -12,7 +12,7 @@ import {
 import { SyntheticEvent, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { ProfileStep } from "./profileStep";
-import { saveProfile } from "./state/profileActions";
+import { saveProfileStep } from "./state/profileActions";
 import { stopEditingProfileStep } from "./state/profileSlice";
 
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
@@ -37,7 +37,7 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    dispatch(saveProfile({ profile, step, stepIndex }));
+    dispatch(saveProfileStep({ profile, step, stepIndex }));
     dispatch(stopEditingProfileStep());
   };
 
