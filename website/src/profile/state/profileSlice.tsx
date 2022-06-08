@@ -1,28 +1,52 @@
 import {
+  createEntityAdapter,
   createSlice,
   isAnyOf,
+  isFulfilled,
   isPending,
   isRejectedWithValue,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import { deleteProfile, loadProfiles, saveProfile, saveProfileStep } from "./profileActions";
-import { EditProfileStep, ProfileState } from "./profileTypes";
+import { Profile } from "../profile";
+import { ProfileStep } from "../profileStep";
+import {
+  deleteProfile,
+  deleteProfileStep,
+  loadProfiles,
+  saveProfile,
+  saveProfileStep,
+} from "./profileActions";
 
-const initialState = {
-  loading: false,
-  profiles: [],
-  error: undefined,
-} as ProfileState;
+export interface EditProfileStepState {
+  profile: Profile;
+  stepIndex: number;
+  step: ProfileStep;
+}
 
-type editProfileStepParam = PayloadAction<
-  { stepIndex?: number } & Omit<EditProfileStep, "stepIndex">
+interface PartialProfileState {
+  loading: boolean;
+  editingProfileStep?: EditProfileStepState;
+  error?: string;
+}
+
+type EditProfileStepParam = { stepIndex?: number } & Omit<
+  EditProfileStepState,
+  "stepIndex"
 >;
+
+const profilesAdapter = createEntityAdapter<Profile>({
+  selectId: (profile) => profile.id,
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+});
 
 const profileSlice = createSlice({
   name: "profile",
-  initialState,
+  initialState: profilesAdapter.getInitialState({
+    loading: false,
+    error: undefined,
+  } as PartialProfileState),
   reducers: {
-    editProfileStep(state, action: editProfileStepParam) {
+    editProfileStep(state, action: PayloadAction<EditProfileStepParam>) {
       const stepIndex =
         action.payload.stepIndex ?? action.payload.profile.steps.length;
 
@@ -38,48 +62,18 @@ const profileSlice = createSlice({
   },
 
   extraReducers: (builder) => {
-
     // Load Profiles
-    builder.addCase(loadProfiles.fulfilled, (state, action) => {
-      state.loading = false;
-      state.error = undefined;
-      state.profiles = action.payload;
-    });
+    builder.addCase(loadProfiles.fulfilled, profilesAdapter.setAll);
 
     // Delete Profile
-    builder.addCase(deleteProfile.fulfilled, (state, action) => {
-      const { profile, stepIndex } = action.payload;
-      state.loading = false;
-      state.error = undefined;
-
-      if (stepIndex === undefined) {
-        state.profiles = state.profiles.filter(
-          (value) => value.id !== profile.id
-        );
-        return;
-      }
-
-      const steps = profile.steps.filter((_, index) => index !== stepIndex);
-      state.profiles = state.profiles.map((value) =>
-        value.id === profile.id ? { ...value, steps } : value
-      );
-    });
+    builder.addCase(deleteProfile.fulfilled, profilesAdapter.removeOne);
+    builder.addCase(deleteProfileStep.fulfilled, profilesAdapter.setOne);
 
     // Save Profile
-    builder.addMatcher(isAnyOf(saveProfile.fulfilled, saveProfileStep.fulfilled), (state, action) => {
-      state.loading = false;
-      state.error = undefined;
-
-      const index = state.profiles.findIndex(
-        (value) => value.id === action.payload.id
-      );
-
-      if (index >= 0) {
-        state.profiles = state.profiles.map((value, i) => index === i ? action.payload : value);
-      } else {
-        state.profiles = state.profiles.concat(action.payload);
-      }
-    });
+    builder.addMatcher(
+      isAnyOf(saveProfile.fulfilled, saveProfileStep.fulfilled),
+      profilesAdapter.setOne
+    );
 
     // Loading
     builder.addMatcher(isPending, (state) => {
@@ -91,8 +85,14 @@ const profileSlice = createSlice({
       state.loading = false;
       state.error = action.payload as string;
     });
+
+    builder.addMatcher(isFulfilled, (state, _) => {
+      state.loading = false;
+      state.error = undefined;
+    });
   },
 });
 
+export const profilesSelectors = profilesAdapter.getSelectors();
 export const { editProfileStep, stopEditingProfileStep } = profileSlice.actions;
 export default profileSlice;

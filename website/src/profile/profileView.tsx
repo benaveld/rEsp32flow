@@ -15,9 +15,7 @@ import { Profile } from "./profile";
 import { initialProfileStep } from "./profileStep";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
-import {
-  deleteProfile,
-} from "./state/profileActions";
+import { deleteProfile, deleteProfileStep } from "./state/profileActions";
 import { editProfileStep, stopEditingProfileStep } from "./state/profileSlice";
 
 interface ProfileViewProps {
@@ -39,19 +37,23 @@ export function ProfileView(props: ProfileViewProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch = useAppDispatch();
 
-  const addStep = () => dispatch(editProfileStep({profile, step: initialProfileStep}));
+  const addStep = () =>
+    dispatch(editProfileStep({ profile, step: initialProfileStep }));
+
   const setEditStep = (stepIndex?: number) => {
     if (stepIndex === undefined) {
       return dispatch(stopEditingProfileStep());
     }
-    dispatch(editProfileStep({profile, step: profile.steps[stepIndex], stepIndex}));
+    dispatch(
+      editProfileStep({ profile, step: profile.steps[stepIndex], stepIndex })
+    );
   };
 
   const onDeleteStep = (stepIndex: number) =>
-    dispatch(deleteProfile({ profile, stepIndex }));
+    dispatch(deleteProfileStep({ profile, stepIndex }));
 
   const onDeleteProfile = (doDelete: boolean) => {
-    if (doDelete) dispatch(deleteProfile({ profile }));
+    if (doDelete) dispatch(deleteProfile(profile.id));
     setDeleteDialogOpen(false);
   };
 

@@ -1,6 +1,7 @@
 import { Box, BoxProps, Button, Card, Typography } from "@mui/material";
 import { useAppSelector } from "../hooks";
 import { ProfileStepView } from "../profile/profileStepView";
+import { profilesSelectors } from "../profile/state/profileSlice";
 import { stopRelay } from "../relay/relayActions";
 
 const ColoredBox = (props: { color: string } & BoxProps) => {
@@ -24,7 +25,7 @@ const ColoredBox = (props: { color: string } & BoxProps) => {
 
 export default function StatusView(props: BoxProps) {
   const status = useAppSelector((appState) => appState.statusState);
-  const { profiles } = useAppSelector((appState) => appState.profileState);
+  const profiles = useAppSelector((appState) => profilesSelectors.selectAll(appState.profileState));
   const runningProfile = status.isOn ? profiles[status.profileId] : undefined;
 
   return (

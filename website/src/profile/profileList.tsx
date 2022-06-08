@@ -18,15 +18,18 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { getUniqId, Profile } from "./profile";
 import { ProfileView } from "./profileView";
 import { loadProfiles, saveProfile } from "./state/profileActions";
+import { profilesSelectors } from "./state/profileSlice";
 
 export default function ProfileList(props: PaperProps) {
   const [open, setOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
   const dispatch = useAppDispatch();
 
-  const { profiles, error } = useAppSelector(
+  const profileState = useAppSelector(
     (appState) => appState.profileState
   );
+  const error = profileState.error;
+  const profiles = profilesSelectors.selectAll(profileState);
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);

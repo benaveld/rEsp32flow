@@ -5,13 +5,13 @@ import profileSlice from "./profile/state/profileSlice";
 
 const logger = createLogger({
   // Change this to log a redux action, true -> log
-  predicate: (getState, action, logEntry) => {
+  predicate: (_, action, logEntry) => {
     if (isRejected(action)) return true;
 
-    // Example of logging a specific action
+    // // Example of logging a specific action
     // if (typeof action.type === "string") {
     //   const type = action.type as string;
-    //   if (type.startsWith(saveProfile.typePrefix)) return true;
+    //   if (type.startsWith(profileSlice.name)) return true;
     // }
 
     return Boolean(logEntry?.error);

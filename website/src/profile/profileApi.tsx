@@ -1,6 +1,6 @@
 import { baseUrl } from "../config";
 import { Profile } from "./profile";
-import { EditProfileStep } from "./state/profileTypes";
+import { EditProfileStepState } from "./state/profileSlice";
 
 const url = baseUrl + "/api/profiles.json";
 
@@ -24,7 +24,7 @@ const ProfileApi = {
     throw new Error(response.statusText);
   },
 
-  async putStep(props: EditProfileStep) {
+  async putStep(props: EditProfileStepState) {
     const { profile, step, stepIndex } = props;
     const requestUrl = url + "?id=" + profile.id + "&stepId=" + stepIndex;
 
@@ -47,11 +47,19 @@ const ProfileApi = {
     throw new Error(response.statusText);
   },
 
-  async delete(profile: Profile, stepIndex?: number) {
-    let requestUrl = url + "?id=" + profile.id;
-    if (stepIndex !== undefined) {
-      requestUrl += "&stepId=" + stepIndex;
-    }
+  async delete(profileId: number) {
+    const requestUrl = url + "?id=" + profileId;
+
+    const response = await fetch(requestUrl, {
+      method: "DELETE",
+      mode: "cors",
+    });
+    if (response.ok) return;
+    throw new Error(response.statusText);   
+  },
+
+  async deleteStep(profile: Profile, stepIndex: number) {
+    const requestUrl = url + "?id=" + profile.id +"&stepId=" + stepIndex;
 
     const response = await fetch(requestUrl, {
       method: "DELETE",
