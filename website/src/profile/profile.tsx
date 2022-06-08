@@ -6,13 +6,11 @@ export interface Profile {
   steps: ProfileStep[];
 }
 
-// This assumes that the profiles are sorted by id.
-export function getUniqId(profiles: Profile[]): number {
+export function getUniqId(profiles: Profile[]) {
   let id = 0;
-  profiles.forEach((value) => {
-    if (value.id === id) {
-      id++;
-    }
-  });
+  const idCheck = (id: number) => (v: Profile) => v.id === id;
+  while (profiles.find(idCheck(id)) !== undefined) {
+    id++;
+  }
   return id;
 }
