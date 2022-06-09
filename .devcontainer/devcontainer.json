@@ -20,6 +20,7 @@
 	// Replace when using a ptrace-based debugger like C++, Go, and Rust
 	// "runArgs": [ "--init", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
   "runArgs": ["--device-cgroup-rule=c 188:* rwm"],
+
   "settings": {
     "platformio-ide.customPATH": "/usr/bin",
     "platformio-ide.useBuiltinPIOCore": false,
