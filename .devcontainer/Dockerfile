@@ -24,6 +24,9 @@ RUN echo $BACH_COMPLETION >> /root/.bashrc \
 RUN mkdir -p /etc/udev/rules.d/ \
   && curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules > /etc/udev/rules.d/99-platformio-udev.rules
 
+# add user to device group so it might access the dev board
+RUN usermod -a -G dialout vscode
+
 USER vscode
 
 RUN pio pkg install -g \

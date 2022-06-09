@@ -32,10 +32,11 @@
     "platformio.platformio-ide",
     "esbenp.prettier-vscode",
     "msjsdiag.vscode-react-native",
+    "dsznajder.es7-react-js-snippets",
     "dbaeumer.vscode-eslint",
-    "KnisterPeter.vscode-github",
-    "streetsidesoftware.code-spell-checker",
-    "dsznajder.es7-react-js-snippets"
+    "eamodio.gitlens",
+    "DavidAnson.vscode-markdownlint",
+    "streetsidesoftware.code-spell-checker"
   ],
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
