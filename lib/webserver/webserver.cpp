@@ -92,13 +92,13 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
 
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
-                size_t historySize = 25;
-                if(request->hasParam("historySize")){
-                  historySize = std::strtoul(request->getParam("historySize")->value().c_str(), nullptr, 10);
+                int64_t timeBack = 60000;
+                if(request->hasParam("timeBack")){
+                  timeBack = std::strtoll(request->getParam("timeBack")->value().c_str(), nullptr, 10);
                 }
 
-                auto response = new AsyncJsonResponse(false, (96U + 8U * historySize) * 4U);
-                a_temperatureSensor->toJson(response->getRoot(), historySize);
+                auto response = new AsyncJsonResponse(false, 0x10000);
+                a_temperatureSensor->toJson(response->getRoot(), timeBack);
                 response->setLength();
                 request->send(response); });
 

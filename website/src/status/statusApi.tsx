@@ -1,4 +1,4 @@
-import { baseUrl } from "../config";
+import { baseUrl, requestMode } from "../config";
 
 const url = baseUrl + "/api/status.json";
 
@@ -18,7 +18,7 @@ export interface StatusGetResponse {
 
 const StatusApi = {
   async get(): Promise<StatusGetResponse | never> {
-    const response = await fetch(url, { mode: "cors" });
+    const response = await fetch(url, { mode: requestMode});
     if (response.ok) return await response.json();
     throw new Error(response.status + ": " + response.statusText);
   },

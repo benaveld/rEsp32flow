@@ -3,7 +3,11 @@ import { blue, red } from "@mui/material/colors";
 import { useEffect } from "react";
 import { useAppDispatch } from "./hooks";
 import ProfileList from "./profile/profileList";
-import { updateStatus } from "./status/state/statusActions";
+import {
+  loadTemperatureHistory,
+  updateStatus,
+} from "./status/state/statusActions";
+import { keepHistoryTime } from "./status/state/statusSlice";
 import StatusView from "./status/statusView";
 import TemperatureChart from "./status/temperatureChart";
 
@@ -15,15 +19,15 @@ const theme = createTheme({
 });
 
 function App() {
-
   const dispatch = useAppDispatch();
   useEffect(() => {
+    dispatch(loadTemperatureHistory(keepHistoryTime));
+
     const interval = setInterval(() => {
       dispatch(updateStatus());
     }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
+
+    return () => clearInterval(interval);
   }, [dispatch]);
 
   return (

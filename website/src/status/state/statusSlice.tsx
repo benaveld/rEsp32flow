@@ -1,8 +1,8 @@
 import { createSlice, isPending, isRejectedWithValue } from "@reduxjs/toolkit";
 import { StatusState } from "./statusTypes";
-import { updateStatus } from "./statusActions";
+import { loadTemperatureHistory, updateStatus } from "./statusActions";
 
-const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
+export const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
 const initialState = {
   loading: false,
@@ -28,15 +28,13 @@ const insertAndCleanHistory = (
 ) =>
   history
     .concat(update)
-    .filter((value) => update.uptime - discardOlder <= value.uptime)
-    .sort((a, b) => a.uptime - b.uptime);
+    .filter((value) => update.uptime - discardOlder <= value.uptime);
 
 const statusSlice = createSlice({
   name: "status",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-
     // Update status
     builder.addCase(updateStatus.fulfilled, (state, action) => {
       if (action.payload.uptime < state.uptime) {
@@ -60,6 +58,16 @@ const statusSlice = createSlice({
           keepHistoryTime
         ),
       };
+    });
+
+    builder.addCase(loadTemperatureHistory.fulfilled, (state, action) => {
+      state.loading = false;
+      if (action.payload === null) return;
+
+      state.error = undefined;
+      state.history = state.history
+        .concat(action.payload.history)
+        .sort((a, b) => a.uptime - b.uptime);
     });
 
     // Loading

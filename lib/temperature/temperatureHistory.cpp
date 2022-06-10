@@ -31,44 +31,43 @@ void resp32flow::TemperatureHistory::begin()
   xTaskCreate(temperatureUpdateLoop, "temperature sensor task.", 2048, this, TASK_PRIORITY, &m_taskHandler);
 }
 
-auto resp32flow::TemperatureHistory::getChipTempHistory() const -> const history_t &
+auto resp32flow::TemperatureHistory::getHistory() const -> const history_t &
 {
-  return m_chipHistory;
-}
-
-auto resp32flow::TemperatureHistory::getOvenTempHistory() const -> const history_t &
-{
-  return m_ovenHistory;
+  return m_history;
 }
 
 void resp32flow::TemperatureHistory::_updateHistory()
 {
-  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
-  m_chipHistory.push(m_sensor->getChipTemp());
-  m_ovenHistory.push(m_sensor->getOvenTemp());
+  while (xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE)
+    ;
+  State currentState;
+  currentState.uptime = esp_timer_get_time();
+  currentState.chip = m_sensor->getChipTemp();
+  currentState.oven = m_sensor->getOvenTemp();
+  m_history.push(currentState);
   xSemaphoreGiveRecursive(m_mutex);
 }
 
-void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject, size_t a_historySize) const
+void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject, time_t a_timeBack) const
 {
-  while(xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE);
+  while (xSemaphoreTakeRecursive(m_mutex, MUTEX_BLOCK_DELAY) != pdTRUE)
+    ;
   a_jsonObject["historySampleRate"] = m_sampleRate;
-  //TODO make to history with time.  {uptime: {oven, chip}}
-  if (historySize > 0)
+
+  a_timeBack *= 1000;
+  auto&& uptime = esp_timer_get_time();
+  auto time = uptime > a_timeBack ? uptime - a_timeBack : 0;
+  auto jsonHistory = a_jsonObject.createNestedArray("history");
+  for (auto i = m_history.size() - 1; i >= 0; i--)
   {
-    decltype(m_ovenHistory)::index_t historyStartIndex = m_ovenHistory.size() > a_historySize ? m_ovenHistory.size() - a_historySize : 0;
+    auto &&pastState = m_history[i];
+    if (pastState.uptime < time)
+      break;
 
-    auto jsonOvenHistory = a_jsonObject.createNestedArray("ovenHistory");
-    for (auto i = m_ovenHistory.size() - 1; i >= historyStartIndex; i--)
-    {
-      jsonOvenHistory.add(m_ovenHistory[i]);
-    }
-
-    auto jsonChipHistory = a_jsonObject.createNestedArray("chipHistory");
-    for (auto i = m_chipHistory.size() - 1; i >= historyStartIndex; i--)
-    {
-      jsonChipHistory.add(m_chipHistory[i]);
-    }
+    auto jsonState = jsonHistory.createNestedObject();
+    jsonState["uptime"] = pastState.uptime / 1000;
+    jsonState["oven"] = pastState.oven;
+    jsonState["chip"] = pastState.chip;
   }
 
   xSemaphoreGiveRecursive(m_mutex);
