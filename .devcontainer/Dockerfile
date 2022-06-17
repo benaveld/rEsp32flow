@@ -7,28 +7,18 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-alpine-${VARIANT}
 RUN apk update \
   && apk upgrade \
   && apk -q add --no-cache \
-    bash-completion \
-    curl \
     gcompat \
     npm \
-    openssh-client \
     py3-pip \
   && pip install -U platformio \
   && npm i -g npm-check-updates 
 
-# Enable bash-completion for users root and vscode
-ARG BACH_COMPLETION="[ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" 
-RUN echo $BACH_COMPLETION >> /root/.bashrc \
-  && echo $BACH_COMPLETION >> /home/vscode/.bashrc
+COPY pio-setup.sh /tmp/pio-setup.sh
+RUN sudo -n -u vscode ash /tmp/pio-setup.sh \
+  && rm /tmp/pio-setup.sh
 
 RUN mkdir -p /etc/udev/rules.d/ \
   && curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules > /etc/udev/rules.d/99-platformio-udev.rules
 
-# add user to device group so it might access the dev board
-RUN usermod -a -G dialout vscode
-
-USER vscode
-
-RUN pio pkg install -g \
-  -p espressif32 \
-  && pio system prune -f
+# add user to device group so it might access the dev board and set the shell to zsh
+RUN usermod -a -G dialout -s $(which zsh) vscode
