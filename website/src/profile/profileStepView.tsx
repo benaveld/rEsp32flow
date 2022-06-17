@@ -2,6 +2,7 @@ import { Delete, Edit, MoreVert } from "@mui/icons-material";
 import {
   Card,
   CardHeader,
+  CardProps,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -28,24 +29,21 @@ function createAction(props: createActionProps) {
   );
 }
 
-function addAction(
+const addAction = (
   actions: JSX.Element[],
   isEnabled: boolean,
   props: createActionProps
-) {
-  if (!isEnabled) return actions;
-  return actions.concat(createAction(props));
-}
+) => (isEnabled ? actions.concat(createAction(props)) : actions);
 
-interface ProfileStepViewProps {
+type ProfileStepViewProps = {
   index: number;
   step: ProfileStep;
-  setIsEdit?: (index?: number) => void;
+  onEdit?: (index: number) => void;
   onDelete?: (index: number) => void;
-}
+} & CardProps;
 
 export function ProfileStepView(props: ProfileStepViewProps) {
-  const { step, index, setIsEdit, onDelete } = props;
+  const { step, index, onEdit, onDelete, ...other } = props;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -54,13 +52,13 @@ export function ProfileStepView(props: ProfileStepViewProps) {
     setAnchorEl(null);
   };
 
-  let actions = addAction([], setIsEdit !== undefined, {
+  let actions = addAction([], onEdit !== undefined, {
     key: "edit",
     text: "Edit step",
     icon: <Edit fontSize="small" />,
     onClick: () => {
       handleClose();
-      setIsEdit!(index);
+      onEdit!(index);
     },
   });
 
@@ -75,7 +73,7 @@ export function ProfileStepView(props: ProfileStepViewProps) {
   });
 
   return (
-    <Card>
+    <Card {...other}>
       <CardHeader
         title={
           <Typography noWrap variant="h6">

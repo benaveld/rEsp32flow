@@ -3,6 +3,7 @@ import {
   Accordion,
   AccordionActions,
   AccordionDetails,
+  AccordionProps,
   AccordionSummary,
   IconButton,
   Typography,
@@ -18,13 +19,12 @@ import { ProfileStepView } from "./profileStepView";
 import { deleteProfile, deleteProfileStep } from "./state/profileActions";
 import { editProfileStep, stopEditingProfileStep } from "./state/profileSlice";
 
-interface ProfileViewProps {
+type ProfileViewProps = {
   profile: Profile;
-  editingStepIndex?: number;
-}
+} & Omit<AccordionProps, "children">;
 
 export function ProfileView(props: ProfileViewProps) {
-  const { profile } = props;
+  const { profile, ...other } = props;
   const { editingProfileStep } = useAppSelector(
     (appState) => appState.profileState
   );
@@ -60,7 +60,7 @@ export function ProfileView(props: ProfileViewProps) {
   const onStartProfile = () => startRelay(profile.id);
 
   return (
-    <Accordion>
+    <Accordion aria-label={"profile: " + profile.id} {...other}>
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Typography variant="h6">{profile.name}</Typography>
         <ConfirmationDialog
@@ -76,13 +76,17 @@ export function ProfileView(props: ProfileViewProps) {
       <AccordionDetails>
         {profile.steps.map((value, index) =>
           index === editingStepIndex ? (
-            <ProfileStepForm key={index} />
+            <ProfileStepForm
+              key={index}
+              aria-label={profile.name + "_" + index + "_edit"}
+            />
           ) : (
             <ProfileStepView
+              aria-label={profile.name + "_" + index}
               key={index}
               index={index}
               step={value}
-              setIsEdit={setEditStep}
+              onEdit={setEditStep}
               onDelete={onDeleteStep}
             />
           )

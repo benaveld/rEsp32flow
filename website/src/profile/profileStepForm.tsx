@@ -17,7 +17,7 @@ import { stopEditingProfileStep } from "./state/profileSlice";
 
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
-export function ProfileStepForm(props: ProfileStepFormProps) {
+export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const { profile, stepIndex, ...editingProfile } = useAppSelector(
     (appState) => appState.profileState.editingProfileStep!
   );
@@ -34,10 +34,10 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
     return step.timer >= 0;
   }
 
-  const handleSubmit = (event: SyntheticEvent) => {
+  const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    dispatch(saveProfileStep({ profile, step, stepIndex }));
+    await dispatch(saveProfileStep({ profile, step, stepIndex }));
     dispatch(stopEditingProfileStep());
   };
 
@@ -120,4 +120,4 @@ export function ProfileStepForm(props: ProfileStepFormProps) {
       </CardActions>
     </Card>
   );
-}
+};

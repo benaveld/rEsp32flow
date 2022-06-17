@@ -2,17 +2,17 @@ import { baseUrl } from "../config";
 import { Profile } from "./profile";
 import { EditProfileStepState } from "./state/profileSlice";
 
-const url = baseUrl + "/api/profiles.json";
+export const profileApiUrl = baseUrl + "/api/profiles.json";
 
 const ProfileApi = {
   async get(): Promise<Profile[]> {
-    const response = await fetch(url, { mode: "cors" });
+    const response = await fetch(profileApiUrl, { mode: "cors" });
     if (response.ok) return await response.json();
     throw new Error(response.statusText);
   },
 
   async put(profile: Profile): Promise<Profile> {
-    const requestUrl = url + "?id=" + profile.id;
+    const requestUrl = profileApiUrl + "?id=" + profile.id;
     const response = await fetch(requestUrl, {
       method: "PUT",
       body: JSON.stringify(profile),
@@ -26,7 +26,7 @@ const ProfileApi = {
 
   async putStep(props: EditProfileStepState) {
     const { profile, step, stepIndex } = props;
-    const requestUrl = url + "?id=" + profile.id + "&stepId=" + stepIndex;
+    const requestUrl = profileApiUrl + "?id=" + profile.id + "&stepId=" + stepIndex;
 
     if (stepIndex > profile.steps.length || stepIndex < 0)
       throw new Error("stepIndex out of range");
@@ -48,7 +48,7 @@ const ProfileApi = {
   },
 
   async delete(profileId: number) {
-    const requestUrl = url + "?id=" + profileId;
+    const requestUrl = profileApiUrl + "?id=" + profileId;
 
     const response = await fetch(requestUrl, {
       method: "DELETE",
@@ -59,7 +59,7 @@ const ProfileApi = {
   },
 
   async deleteStep(profile: Profile, stepIndex: number) {
-    const requestUrl = url + "?id=" + profile.id +"&stepId=" + stepIndex;
+    const requestUrl = profileApiUrl + "?id=" + profile.id +"&stepId=" + stepIndex;
 
     const response = await fetch(requestUrl, {
       method: "DELETE",

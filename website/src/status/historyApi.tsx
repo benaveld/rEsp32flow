@@ -1,6 +1,6 @@
 import { baseUrl, requestMode } from "../config";
 
-const url = baseUrl + "/api/temperature.json";
+export const temperatureApiUrl = baseUrl + "/api/temperature.json";
 
 export interface HistoryGetResponse {
   historySampleRate: number;
@@ -15,7 +15,7 @@ export interface HistoryGetResponse {
 
 const HistoryApi = {
   async get(timeBack: number): Promise<HistoryGetResponse | null> {
-    const response = await fetch(url + "?timeBack=" + timeBack, {
+    const response = await fetch(temperatureApiUrl + "?timeBack=" + timeBack, {
       mode: requestMode,
     });
     if (response.ok) return await response.json();

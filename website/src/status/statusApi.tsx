@@ -1,6 +1,6 @@
 import { baseUrl, requestMode } from "../config";
 
-const url = baseUrl + "/api/status.json";
+export const statusApiUrl = baseUrl + "/api/status.json";
 
 export interface StatusGetResponse {
   isOn: boolean;
@@ -18,7 +18,7 @@ export interface StatusGetResponse {
 
 const StatusApi = {
   async get(): Promise<StatusGetResponse | never> {
-    const response = await fetch(url, { mode: requestMode});
+    const response = await fetch(statusApiUrl, { mode: requestMode});
     if (response.ok) return await response.json();
     throw new Error(response.status + ": " + response.statusText);
   },

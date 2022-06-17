@@ -57,6 +57,7 @@
     "@types/react-dom": "^18.0.5",
     "@types/react-redux": "^7.1.24",
     "@types/redux-logger": "^3.0.9",
-    "loglevel": "^1.8.0"
+    "loglevel": "^1.8.0",
+    "msw": "^0.42.1"
   }
 }

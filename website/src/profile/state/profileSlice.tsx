@@ -29,7 +29,7 @@ interface PartialProfileState {
   error?: string;
 }
 
-type EditProfileStepParam = { stepIndex?: number } & Omit<
+export type EditProfileStepParam = { stepIndex?: number } & Omit<
   EditProfileStepState,
   "stepIndex"
 >;
