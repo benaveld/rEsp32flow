@@ -66,7 +66,7 @@ export default function ProfileList(props: PaperProps) {
         </Tooltip>
       </Box>
 
-      {error !== undefined && <Typography>{error}</Typography>}
+      {error && <Typography>{error}</Typography>}
 
       <Dialog open={open} onClose={handleClose}>
         <Box component="form" onSubmit={handleSubmit}>

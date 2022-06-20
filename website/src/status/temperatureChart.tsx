@@ -1,6 +1,4 @@
 import { Line } from "react-chartjs-2";
-import { useSelector } from "react-redux";
-import { AppState } from "../state";
 import "chartjs-adapter-luxon";
 import {
   Chart as ChartJS,
@@ -9,14 +7,18 @@ import {
   registerables,
 } from "chart.js";
 import { useTheme } from "@mui/material";
+import { historySelector, useGetTemperatureHistoryQuery } from "./statusApi";
 
 ChartJS.register(...registerables);
 
 const TemperatureChart = () => {
-  const { history } = useSelector((appState: AppState) => appState.statusState);
+  const { data: fetchedData } = useGetTemperatureHistoryQuery();
   const { palette } = useTheme();
 
-  const latestUptime = history.length > 0 ? history[history.length - 1].uptime : 0;
+  const history = fetchedData ? historySelector.selectAll(fetchedData) : [];
+
+  const latestUptime =
+    history.length > 0 ? history[history.length - 1].uptime : 0;
   const agedHistory = history.map((value) => {
     return { ...value, age: latestUptime - value.uptime };
   });

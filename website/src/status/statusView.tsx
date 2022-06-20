@@ -1,8 +1,11 @@
 import { Box, BoxProps, Button, Card, Typography } from "@mui/material";
+import { getErrorMessage } from "../errorUtils";
 import { useAppSelector } from "../hooks";
+import { Profile } from "../profile/profile";
 import { ProfileStepView } from "../profile/profileStepView";
 import { profilesSelectors } from "../profile/state/profileSlice";
 import { stopRelay } from "../relay/relayActions";
+import { useGetStatusUpdateQuery } from "./statusApi";
 
 const ColoredBox = (props: { color: string } & BoxProps) => {
   const { color, sx, ...other } = props;
@@ -23,24 +26,34 @@ const ColoredBox = (props: { color: string } & BoxProps) => {
   );
 };
 
-export default function StatusView(props: BoxProps) {
-  const status = useAppSelector((appState) => appState.statusState);
-  const profiles = useAppSelector((appState) => profilesSelectors.selectAll(appState.profileState));
-  const runningProfile = status.isOn ? profiles[status.profileId] : undefined;
+export type StatusViewProps = {
+  pollingInterval?: number; //Defaults to 1000ms
+} & BoxProps;
+
+export default function StatusView(props: StatusViewProps) {
+  const { data: status, error } = useGetStatusUpdateQuery(undefined, {
+    pollingInterval: props.pollingInterval ?? 1000,
+  });
+
+  const runningProfile: Profile | undefined = useAppSelector((appState) =>
+    status?.isOn
+      ? profilesSelectors.selectById(appState.profileState, status.profileId)
+      : undefined
+  );
 
   return (
     <Box {...props}>
       <Box sx={{ display: "flex", flexDirection: "row" }}>
         <ColoredBox color="primary.main" />
-        <Typography noWrap>Oven: {status.oven.toFixed(2)}°C</Typography>
+        <Typography noWrap>Oven: {status?.oven.toFixed(2) ?? 0.0}°C</Typography>
       </Box>
 
       <Box sx={{ display: "flex", flexDirection: "row" }}>
         <ColoredBox color="secondary.main" />
-        <Typography noWrap>Chip: {status.chip.toFixed(2)}°C</Typography>
+        <Typography noWrap>Chip: {status?.chip.toFixed(2) ?? 0.0}°C</Typography>
       </Box>
 
-      {status.isOn && runningProfile !== undefined ? (
+      {status?.isOn && runningProfile ? (
         <Card>
           <Typography>Running {runningProfile!.name}</Typography>
           <Typography>Relay on for {status.relayOnTime / 1000}sec</Typography>
@@ -67,10 +80,10 @@ export default function StatusView(props: BoxProps) {
         <Typography noWrap>Not running</Typography>
       )}
 
-      {status.fault !== 0 && (
+      {status && status.fault !== 0 && (
         <Card>
-          <Typography color="error">Sensor fault: {status.fault}</Typography>
-          {status.faultText.map((value, index) => (
+          <Typography color="error">Sensor fault: {status?.fault}</Typography>
+          {status?.faultText.map((value, index) => (
             <Typography key={index} color="error">
               {value}
             </Typography>
@@ -78,9 +91,7 @@ export default function StatusView(props: BoxProps) {
         </Card>
       )}
 
-      {status.error !== undefined && (
-        <Typography color="error">{status.error}</Typography>
-      )}
+      {error && <Typography color="error">{getErrorMessage(error)}</Typography>}
     </Box>
   );
 }

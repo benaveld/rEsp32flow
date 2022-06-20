@@ -1,50 +1,47 @@
 import { createLogger } from "redux-logger";
 import { configureStore, isRejected } from "@reduxjs/toolkit";
-import statusSlice from "./status/state/statusSlice";
 import profileSlice from "./profile/state/profileSlice";
-import { CurriedGetDefaultMiddleware } from "@reduxjs/toolkit/dist/getDefaultMiddleware";
+import { statusApi } from "./status/statusApi";
+import { setupListeners } from "@reduxjs/toolkit/dist/query";
 
-export const reducer = {
-  profileState: profileSlice.reducer,
-  statusState: statusSlice.reducer,
-};
+const logger = createLogger({
+  // Change this to log a redux action, true -> log
+  predicate: (_, action, logEntry) => {
+    if (isRejected(action)) return true;
 
-export const preloadedState = {
-  profileState: profileSlice.getInitialState(),
-  statusState: statusSlice.getInitialState(),
-};
+    // // Example of logging a specific action
+    // if (typeof action.type === "string") {
+    //   const type = action.type as string;
+    //   if (type.startsWith(profileSlice.name)) return true;
+    // }
 
-function getMiddleware(
-  getDefaultMiddleware: CurriedGetDefaultMiddleware<typeof preloadedState>
-) {
-  let middleware = getDefaultMiddleware();
-  if (process.env.NODE_ENV === "development") {
-    middleware.push(
-      createLogger({
-        // Change this to log a redux action, true -> log
-        predicate: (_, action, logEntry) => {
-          if (isRejected(action)) return true;
-
-          // // Example of logging a specific action
-          // if (typeof action.type === "string") {
-          //   const type = action.type as string;
-          //   if (type.startsWith(profileSlice.name)) return true;
-          // }
-
-          return Boolean(logEntry?.error);
-        },
-      })
-    );
-  }
-  return middleware;
-}
+    return Boolean(logEntry?.error);
+  },
+});
 
 export const store = configureStore({
-  reducer,
-  preloadedState,
-  middleware: getMiddleware,
+  reducer: {
+    profileState: profileSlice.reducer,
+    [statusApi.reducerPath]: statusApi.reducer,
+  },
+
+  preloadedState: {
+    profileState: profileSlice.getInitialState(),
+  },
+
   devTools: process.env.NODE_ENV !== "production",
+
+  middleware: (getDefaultMiddleware) => {
+    const middleware = getDefaultMiddleware().concat(statusApi.middleware);
+
+    if (process.env.NODE_ENV !== "production")
+      return middleware.concat(logger);
+
+    return middleware;
+  },
 });
+
+setupListeners(store.dispatch);
 
 export type AppState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
