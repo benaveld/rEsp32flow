@@ -1,6 +1,6 @@
 import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/dist/query/react";
-import { baseUrl, requestMode } from "../config";
+import { baseApiUrl, requestMode } from "../config";
 
 export const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
@@ -26,6 +26,11 @@ export type StatusGetResponse = {
   faultText: string[];
 } & TemperatureHistorySlice;
 
+const statusJsonUrl = "status.json";
+const temperatureJsonUrl = "temperature.json";
+export const statusApiUrl = `${baseApiUrl}/${statusJsonUrl}`;
+export const temperatureApiUrl = `${baseApiUrl}/${temperatureJsonUrl}`;
+
 const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
   selectId: (slice) => slice.uptime,
   sortComparer: (a, b) => a.uptime - b.uptime,
@@ -34,11 +39,11 @@ const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
 export const historySelector = historyAdapter.getSelectors();
 
 export const statusApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: `${baseUrl}/api/`, mode: requestMode }),
+  baseQuery: fetchBaseQuery({ baseUrl: `${baseApiUrl}/`, mode: requestMode }),
   reducerPath: "status",
   endpoints: (build) => ({
     getStatusUpdate: build.query<StatusGetResponse, void>({
-      query: () => "status.json",
+      query: () => statusJsonUrl,
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           const { data: statusUpdate } = await queryFulfilled;
@@ -61,7 +66,7 @@ export const statusApi = createApi({
       EntityState<TemperatureHistorySlice>,
       void
     >({
-      query: () => `temperature.json?timeBack=${keepHistoryTime}`,
+      query: () => `${temperatureJsonUrl}?timeBack=${keepHistoryTime}`,
       transformResponse(response: HistoryGetResponse) {
         return historyAdapter.addMany(
           historyAdapter.getInitialState(),

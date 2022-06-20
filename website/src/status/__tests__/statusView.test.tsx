@@ -1,25 +1,35 @@
 import "@testing-library/jest-dom";
 import {
   render,
-  useActDispatch,
   screen,
 } from "../../../utils/test-utils";
 import StatusView from "../statusView";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
-import { statusApiUrl } from "../statusApi";
-import { StatusState } from "../state/statusTypes";
-import { updateStatus } from "../state/statusActions";
+import { statusApiUrl, StatusGetResponse } from "../statusApi";
+import { profileApiUrl } from "../../profile/profileApi";
 
-const testStatus = {
+const testStatus: StatusGetResponse = {
   oven: 42,
   chip: 13,
-} as StatusState;
+  isOn: false,
+  fault: 0,
+  faultText: [],
+  profileId: 0,
+  profileStepIndex: 0,
+  relayOnTime: 0,
+  stepTime: 0,
+  updateRate: 20000,
+  uptime: 1234,
+};
 
 const server = setupServer(
   rest.get(statusApiUrl, (req, res, ctx) => {
     return res(ctx.status(200), ctx.json(testStatus));
-  })
+  }),
+  rest.get(profileApiUrl, (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json([]));
+  }),
 );
 
 // Enable API mocking before tests.
@@ -33,14 +43,12 @@ afterAll(() => server.close());
 
 it("loads and display oven temperature", async () => {
   render(<StatusView />);
-  await useActDispatch(updateStatus());
 
-  expect(screen.getByRegex({}, testStatus.oven, /(\.0+)?/)).toBeVisible();
+  expect(await screen.findByText(testStatus.oven, {exact: false})).toBeVisible();
 });
 
 it("load and display chip temperature", async () => {
   render(<StatusView />);
-  await useActDispatch(updateStatus());
 
-  expect(screen.getByRegex({}, testStatus.chip, /(\.0+)?/i)).toBeVisible();
+  expect(await screen.findByText(testStatus.chip, {exact: false})).toBeVisible();
 });

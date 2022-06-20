@@ -34,7 +34,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) => {
     const middleware = getDefaultMiddleware().concat(statusApi.middleware);
 
-    if (process.env.NODE_ENV !== "production")
+    if (process.env.NODE_ENV === "development")
       return middleware.concat(logger);
 
     return middleware;
