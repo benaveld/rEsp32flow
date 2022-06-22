@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 volumes:
   node_modules:
 
@@ -6,8 +6,7 @@ services:
   website:
     image: node:latest
     working_dir: "/app"
-    user: node
-    container_name: website
+    container_name: resp32flow-website
     volumes:
       - ./:/app:ro
       - ./package-lock.json:/app/package-lock.json:rw
@@ -17,3 +16,12 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
     command: "bash -c 'npm i && npm start'"
+
+  json:
+    container_name: jsonserver
+    image: vimagick/json-server
+    command: -H 0.0.0.0 -p 3005 -w db.json -r routes.json
+    ports:
+      - 3005:3005
+    volumes:
+      - ./test_db:/data:rw
