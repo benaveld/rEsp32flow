@@ -13,23 +13,23 @@ import {
   Paper,
   PaperProps,
 } from "@mui/material";
-import { useEffect, useState, SyntheticEvent } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks";
-import { getUniqId, Profile } from "./profile";
+import { useState, SyntheticEvent } from "react";
+import { getErrorMessage } from "../errorUtils";
+import { getUniqId } from "./profile";
+import {
+  selectAllProfiles,
+  useGetProfilesQuery,
+  usePutProfileMutation,
+} from "./profileApi";
 import { ProfileView } from "./profileView";
-import { loadProfiles, saveProfile } from "./state/profileActions";
-import { profilesSelectors } from "./state/profileSlice";
 
 export default function ProfileList(props: PaperProps) {
+  const [putProfile] = usePutProfileMutation();
   const [open, setOpen] = useState(false);
   const [newProfileName, setNewProfileName] = useState("");
-  const dispatch = useAppDispatch();
 
-  const profileState = useAppSelector(
-    (appState) => appState.profileState
-  );
-  const error = profileState.error;
-  const profiles = profilesSelectors.selectAll(profileState);
+  const { data: profileQueryData, error } = useGetProfilesQuery();
+  const profiles = selectAllProfiles(profileQueryData);
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -37,20 +37,12 @@ export default function ProfileList(props: PaperProps) {
   const handleSubmit = (event: SyntheticEvent) => {
     event.preventDefault();
     handleClose();
-    const id = getUniqId(profiles);
-    const profile = { id, name: newProfileName, steps: [] } as Profile;
-    dispatch(saveProfile(profile));
+    putProfile({ id: getUniqId(profiles), name: newProfileName, steps: [] });
   };
 
   const handleNewProfileNameChange = (
     event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setNewProfileName(event.target.value);
-  };
-
-  useEffect(() => {
-    dispatch(loadProfiles());
-  }, [dispatch]);
+  ) => setNewProfileName(event.target.value);
 
   return (
     <Paper elevation={2} {...props}>
@@ -66,7 +58,7 @@ export default function ProfileList(props: PaperProps) {
         </Tooltip>
       </Box>
 
-      {error && <Typography>{error}</Typography>}
+      {error && <Typography>{getErrorMessage(error)}</Typography>}
 
       <Dialog open={open} onClose={handleClose}>
         <Box component="form" onSubmit={handleSubmit}>

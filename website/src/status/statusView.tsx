@@ -1,9 +1,7 @@
 import { Box, BoxProps, Button, Card, Typography } from "@mui/material";
 import { getErrorMessage } from "../errorUtils";
-import { useAppSelector } from "../hooks";
-import { Profile } from "../profile/profile";
+import { selectProfileById, useGetProfilesQuery } from "../profile/profileApi";
 import { ProfileStepView } from "../profile/profileStepView";
-import { profilesSelectors } from "../profile/state/profileSlice";
 import { stopRelay } from "../relay/relayActions";
 import { useGetStatusUpdateQuery } from "./statusApi";
 
@@ -30,19 +28,21 @@ export type StatusViewProps = {
   pollingInterval?: number; //Defaults to 1000ms
 } & BoxProps;
 
-export default function StatusView(props: StatusViewProps) {
+export default function StatusView({
+  pollingInterval,
+  ...other
+}: StatusViewProps) {
   const { data: status, error } = useGetStatusUpdateQuery(undefined, {
-    pollingInterval: props.pollingInterval ?? 1000,
+    pollingInterval: pollingInterval ?? 1000,
   });
 
-  const runningProfile: Profile | undefined = useAppSelector((appState) =>
-    status?.isOn
-      ? profilesSelectors.selectById(appState.profileState, status.profileId)
-      : undefined
-  );
+  const { data: profileState } = useGetProfilesQuery();
+  const runningProfile = status?.isOn
+    ? selectProfileById(profileState, status.profileId)
+    : undefined;
 
   return (
-    <Box {...props}>
+    <Box {...other}>
       <Box sx={{ display: "flex", flexDirection: "row" }}>
         <ColoredBox color="primary.main" />
         <Typography noWrap>Oven: {status?.oven.toFixed(2) ?? 0.0}°C</Typography>

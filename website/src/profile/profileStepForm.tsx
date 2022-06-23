@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 import { SyntheticEvent, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
+import { usePutProfileStepMutation } from "./profileApi";
 import { ProfileStep } from "./profileStep";
-import { saveProfileStep } from "./state/profileActions";
 import { stopEditingProfileStep } from "./state/profileSlice";
 
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
@@ -23,6 +23,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   );
   const [step, setStep] = useState(editingProfile.step);
   const dispatch = useAppDispatch();
+  const [putProfileStep] = usePutProfileStepMutation();
 
   const handleChange =
     (prop: keyof ProfileStep) =>
@@ -37,7 +38,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    await dispatch(saveProfileStep({ profile, step, stepIndex }));
+    putProfileStep({id: profile.id, step, stepIndex});
     dispatch(stopEditingProfileStep());
   };
 

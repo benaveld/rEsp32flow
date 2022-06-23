@@ -13,21 +13,22 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
 import { startRelay } from "../relay/relayActions";
 import { Profile } from "./profile";
+import { useDeleteProfileMutation, useDeleteProfileStepMutation } from "./profileApi";
 import { initialProfileStep } from "./profileStep";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
-import { deleteProfile, deleteProfileStep } from "./state/profileActions";
 import { editProfileStep, stopEditingProfileStep } from "./state/profileSlice";
 
 type ProfileViewProps = {
   profile: Profile;
 } & Omit<AccordionProps, "children">;
 
-export function ProfileView(props: ProfileViewProps) {
-  const { profile, ...other } = props;
+export function ProfileView({profile, ...other}: ProfileViewProps) {
   const { editingProfileStep } = useAppSelector(
     (appState) => appState.profileState
   );
+  const [deleteProfile] = useDeleteProfileMutation();
+  const [deleteProfileStep] = useDeleteProfileStepMutation();
 
   const editingStepIndex =
     editingProfileStep?.profile.id === profile.id
@@ -50,10 +51,10 @@ export function ProfileView(props: ProfileViewProps) {
   };
 
   const onDeleteStep = (stepIndex: number) =>
-    dispatch(deleteProfileStep({ profile, stepIndex }));
+    deleteProfileStep({ id: profile.id, stepIndex });
 
   const onDeleteProfile = (doDelete: boolean) => {
-    if (doDelete) dispatch(deleteProfile(profile.id));
+    if (doDelete) deleteProfile(profile.id);
     setDeleteDialogOpen(false);
   };
 

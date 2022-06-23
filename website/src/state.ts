@@ -3,6 +3,7 @@ import { configureStore, isRejected } from "@reduxjs/toolkit";
 import profileSlice from "./profile/state/profileSlice";
 import { statusApi } from "./status/statusApi";
 import { setupListeners } from "@reduxjs/toolkit/dist/query";
+import { ProfileApi } from "./profile/profileApi";
 
 const logger = createLogger({
   // Change this to log a redux action, true -> log
@@ -23,6 +24,7 @@ export const store = configureStore({
   reducer: {
     profileState: profileSlice.reducer,
     [statusApi.reducerPath]: statusApi.reducer,
+    [ProfileApi.reducerPath]: ProfileApi.reducer,
   },
 
   preloadedState: {
@@ -32,7 +34,7 @@ export const store = configureStore({
   devTools: process.env.NODE_ENV !== "production",
 
   middleware: (getDefaultMiddleware) => {
-    const middleware = getDefaultMiddleware().concat(statusApi.middleware);
+    const middleware = getDefaultMiddleware().concat(statusApi.middleware, ProfileApi.middleware);
 
     if (process.env.NODE_ENV === "development")
       return middleware.concat(logger);

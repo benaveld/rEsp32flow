@@ -41,6 +41,7 @@ export const historySelector = historyAdapter.getSelectors();
 export const statusApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: `${baseApiUrl}/`, mode: requestMode }),
   reducerPath: "status",
+  tagTypes: ["history"],
   endpoints: (build) => ({
     getStatusUpdate: build.query<StatusGetResponse, void>({
       query: () => statusJsonUrl,
@@ -52,8 +53,16 @@ export const statusApi = createApi({
               "getTemperatureHistory",
               undefined,
               (draft) => {
+                //TODO: check if statusUpdate.uptime is less then any in draft.
+                // if it is the invalidate the cache.
+                const lastUptime = draft.ids[draft.ids.length - 1];
+                if (lastUptime > statusUpdate.uptime)
+                  dispatch(statusApi.util.invalidateTags(["history"]));
+
                 draft = historyAdapter.setOne(draft, statusUpdate);
-                const idsToRemove = draft.ids.filter((uptime) => statusUpdate.uptime - keepHistoryTime > uptime);
+                const idsToRemove = draft.ids.filter(
+                  (uptime) => statusUpdate.uptime - keepHistoryTime > uptime
+                );
                 draft = historyAdapter.removeMany(draft, idsToRemove);
               }
             )
@@ -67,6 +76,7 @@ export const statusApi = createApi({
       void
     >({
       query: () => `${temperatureJsonUrl}?timeBack=${keepHistoryTime}`,
+      providesTags: ["history"],
       transformResponse(response: HistoryGetResponse) {
         return historyAdapter.addMany(
           historyAdapter.getInitialState(),

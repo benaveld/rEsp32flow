@@ -1,73 +1,152 @@
-import { baseUrl } from "../config";
+import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
+import { MaybeDrafted } from "@reduxjs/toolkit/dist/query/core/buildThunks";
+import { MutationLifecycleApi } from "@reduxjs/toolkit/dist/query/endpointDefinitions";
+import {
+  BaseQueryFn,
+  createApi,
+  fetchBaseQuery,
+} from "@reduxjs/toolkit/dist/query/react";
+import { baseApiUrl, requestMode } from "../config";
 import { Profile } from "./profile";
-import { EditProfileStepState } from "./state/profileSlice";
+import { ProfileStep } from "./profileStep";
 
-export const profileApiUrl = baseUrl + "/api/profiles.json";
+const profileUrl = "profiles.json";
+export const profileApiUrl = `${baseApiUrl}/${profileUrl}`;
 
-const ProfileApi = {
-  async get(): Promise<Profile[]> {
-    const response = await fetch(profileApiUrl, { mode: "cors" });
-    if (response.ok) return await response.json();
-    throw new Error(response.statusText);
-  },
+const profilesAdapter = createEntityAdapter<Profile>({
+  selectId: (profile) => profile.id,
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+});
+const initialState = profilesAdapter.getInitialState();
 
-  async put(profile: Profile): Promise<Profile> {
-    const requestUrl = profileApiUrl + "?id=" + profile.id;
-    const response = await fetch(requestUrl, {
-      method: "PUT",
-      body: JSON.stringify(profile),
-      headers: { "Content-Type": "application/json" },
-      mode: "cors",
-    });
+export const ProfileApi = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: baseApiUrl,
+    mode: requestMode,
+    headers: { "Content-Type": "application/json" },
+  }),
+  reducerPath: "profileApi",
+  endpoints: (build) => ({
+    getProfiles: build.query<EntityState<Profile>, void>({
+      query: () => profileUrl,
+      transformResponse(response: Profile[]) {
+        return profilesAdapter.setAll(
+          initialState,
+          response.map((v) => ("steps" in v ? v : { ...v, steps: [] }))
+        );
+      },
+    }),
 
-    if (response.ok) return profile;
-    throw new Error(response.statusText);
-  },
+    putProfile: build.mutation<void, Profile>({
+      query: (profile) => ({
+        url: `${profileUrl}?id=${profile.id}`,
+        method: "PUT",
+        body: profile,
+      }),
+      onQueryStarted: optimisticUpdateCache<Profile>(profilesAdapter.setOne),
+    }),
 
-  async putStep(props: EditProfileStepState) {
-    const { profile, step, stepIndex } = props;
-    const requestUrl = profileApiUrl + "?id=" + profile.id + "&stepId=" + stepIndex;
+    putProfileStep: build.mutation<
+      void,
+      { id: Profile["id"]; step: ProfileStep; stepIndex: number }
+    >({
+      query: ({ id, stepIndex, step }) => ({
+        url: `${profileUrl}?id=${id}&stepId=${stepIndex}`,
+        method: "PUT",
+        body: step,
+      }),
+      onQueryStarted: optimisticUpdateCache(
+        (draft, { id, step, stepIndex }) => {
+          let steps = selectProfileById(draft, id)?.steps;
+          if (!steps)
+            throw new Error(`profile with the id ${id} dose not exist!`);
 
-    if (stepIndex > profile.steps.length || stepIndex < 0)
-      throw new Error("stepIndex out of range");
+          if (steps.length < stepIndex || stepIndex < 0)
+            throw new Error(
+              `Step index ${stepIndex} is out of bounds for profile ${id}.`
+            );
 
-    const steps =
-      profile.steps.length === stepIndex
-        ? profile.steps.concat(step)
-        : profile.steps.map((old, i) => (i === stepIndex ? step : old));
+          if (steps.length === stepIndex) steps = steps.concat(step);
+          else steps[stepIndex] = step;
 
-    const response = await fetch(requestUrl, {
-      method: "PUT",
-      body: JSON.stringify(step),
-      headers: { "Content-Type": "application/json" },
-      mode: "cors",
-    });
+          draft = profilesAdapter.updateOne(draft, { id, changes: { steps } });
+        }
+      ),
+    }),
 
-    if (response.ok) return { ...profile, steps } as Profile;
-    throw new Error(response.statusText);
-  },
+    deleteProfile: build.mutation<void, Profile["id"]>({
+      query: (id) => ({
+        url: `${profileUrl}?id=${id}`,
+        method: "DELETE",
+      }),
+      onQueryStarted: optimisticUpdateCache<Profile["id"]>(
+        profilesAdapter.removeOne
+      ),
+    }),
 
-  async delete(profileId: number) {
-    const requestUrl = profileApiUrl + "?id=" + profileId;
+    deleteProfileStep: build.mutation<
+      void,
+      { id: Profile["id"]; stepIndex: number }
+    >({
+      query: ({ id, stepIndex }) => ({
+        url: `${profileUrl}?id=${id}&stepId=${stepIndex}`,
+        method: "DELETE",
+      }),
+      onQueryStarted: optimisticUpdateCache((draft, { id, stepIndex }) => {
+        const steps = selectProfileById(draft, id)?.steps;
+        if (!steps)
+          throw new Error(`profile with the id ${id} dose not exist!`);
 
-    const response = await fetch(requestUrl, {
-      method: "DELETE",
-      mode: "cors",
-    });
-    if (response.ok) return;
-    throw new Error(response.statusText);   
-  },
+        if (steps.length <= stepIndex || stepIndex < 0)
+          throw new Error(
+            `Step index ${stepIndex} is out of bounds for profile ${id}.`
+          );
 
-  async deleteStep(profile: Profile, stepIndex: number) {
-    const requestUrl = profileApiUrl + "?id=" + profile.id +"&stepId=" + stepIndex;
+        const updatedSteps = steps.filter((_, i) => i !== stepIndex);
+        draft = profilesAdapter.updateOne(draft, {
+          id,
+          changes: { steps: updatedSteps },
+        });
+      }),
+    }),
+  }),
+});
 
-    const response = await fetch(requestUrl, {
-      method: "DELETE",
-      mode: "cors",
-    });
-    if (response.ok) return;
-    throw new Error(response.statusText);
-  },
-};
+export const {
+  useGetProfilesQuery,
+  usePutProfileMutation,
+  usePutProfileStepMutation,
+  useDeleteProfileMutation,
+  useDeleteProfileStepMutation,
+} = ProfileApi;
 
-export default ProfileApi;
+export const { selectAll: selectAllProfiles, selectById: selectProfileById } =
+  profilesAdapter.getSelectors<EntityState<Profile> | undefined>(
+    (state) => state ?? initialState
+  );
+
+function optimisticUpdateCache<QueryArg>(
+  func: (
+    draft: MaybeDrafted<EntityState<Profile>>,
+    arg: QueryArg
+  ) => typeof draft | void
+) {
+  return <
+    BaseQuery extends BaseQueryFn,
+    ResultType,
+    ReducerPath extends string = string
+  >(
+    arg: QueryArg,
+    {
+      dispatch,
+      queryFulfilled,
+    }: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+  ) => {
+    const updatedProfile = dispatch(
+      ProfileApi.util.updateQueryData("getProfiles", undefined, (draft) =>
+        func(draft, arg)
+      )
+    );
+    queryFulfilled.catch(updatedProfile.undo);
+  };
+}
