@@ -125,7 +125,7 @@ const resp32flow::ProfileStep *resp32flow::RelayController::getCurrentProfileSte
 
   decltype(getCurrentProfileStep()) stepPtr = nullptr;
   if (m_profileStepIndex < m_selectedProfile->steps.size())
-    stepPtr = &m_selectedProfile->steps[m_profileStepIndex];
+    stepPtr = &m_selectedProfile->steps.at(m_profileStepIndex);
   xSemaphoreGiveRecursive(m_mutex);
   return stepPtr;
 }

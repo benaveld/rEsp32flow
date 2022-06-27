@@ -32,7 +32,7 @@ static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, IdPro
     if (profile.steps.size() <= a_stepId.id)
       return a_request->send(404, "text/plain", "Can't find requested profile step.");
 
-    profile.steps[a_stepId.id].toJSON(response->getRoot());
+    profile.steps.at(a_stepId.id).toJSON(response->getRoot());
   }
   else
   {
@@ -54,13 +54,7 @@ static void handleDeleteProfile(resp32flow::ProfileHandler *a_profileHandler, Id
 
   if (a_stepId.valid)
   {
-    auto &steps = profileItr->second.steps;
-
-    for (size_t i = a_stepId.id; i < steps.size() - 1; i++)
-    {
-      steps[i] = steps[i + 1];
-    }
-    steps.pop_back();
+    profileItr->second.steps.erase(a_stepId.id);
     return a_request->send(200);
   }
 
@@ -105,23 +99,13 @@ void resp32flow::webServer::api::handleJsonProfile(resp32flow::ProfileHandler *a
 
   if (stepId.valid)
   {
-    if (stepId.id == profile.steps.size())
-    {
-      profile.steps.emplace_back(a_json);
+    ProfileStep step(a_json);
+    auto result = profile.steps.insert(std::pair<decltype(step.id), decltype(step)>(step.id, step));
+    if (result.second)
       httpResponseCode = 201;
-    }
-    else if (stepId.id < profile.steps.size())
-    {
-      profile.steps[stepId.id] = resp32flow::ProfileStep(a_json);
-    }
-    else
-    {
-      return a_request->send(400, "text/plain", "Step id is outside of profile.");
-    }
   }
   else
   {
-    log_i("update profile");
     profile = resp32flow::Profile(a_json);
   }
 

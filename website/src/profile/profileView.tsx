@@ -12,47 +12,40 @@ import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
 import { startRelay } from "../relay/relayActions";
-import { Profile } from "./profile";
-import { useDeleteProfileMutation, useDeleteProfileStepMutation } from "./profileApi";
-import { initialProfileStep } from "./profileStep";
+import { useDeleteProfileMutation } from "./profileApi";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
-import { editProfileStep, stopEditingProfileStep } from "./state/profileSlice";
+import { initialProfileStep, Profile } from "./profileTypes";
+import { editProfileStep } from "./state/profileSlice";
 
 type ProfileViewProps = {
   profile: Profile;
 } & Omit<AccordionProps, "children">;
 
-export function ProfileView({profile, ...other}: ProfileViewProps) {
+export function ProfileView({ profile, ...other }: ProfileViewProps) {
   const { editingProfileStep } = useAppSelector(
     (appState) => appState.profileState
   );
   const [deleteProfile] = useDeleteProfileMutation();
-  const [deleteProfileStep] = useDeleteProfileStepMutation();
 
-  const editingStepIndex =
-    editingProfileStep?.profile.id === profile.id
-      ? editingProfileStep.stepIndex
+  const editingStepId =
+    editingProfileStep && editingProfileStep.profileId === profile.id
+      ? editingProfileStep.id
       : null;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch = useAppDispatch();
 
   const addStep = () =>
-    dispatch(editProfileStep({ profile, step: initialProfileStep }));
-
-  const setEditStep = (stepIndex?: number) => {
-    if (stepIndex === undefined) {
-      return dispatch(stopEditingProfileStep());
-    }
     dispatch(
-      editProfileStep({ profile, step: profile.steps[stepIndex], stepIndex })
+      editProfileStep({
+        ...initialProfileStep,
+        profileId: profile.id,
+        id: (profile.steps.at(-1)?.id ?? -1) + 1,
+      })
     );
-  };
 
-  const onDeleteStep = (stepIndex: number) =>
-    deleteProfileStep({ id: profile.id, stepIndex });
-
+  const openDeleteDialog = () => setDeleteDialogOpen(true);
   const onDeleteProfile = (doDelete: boolean) => {
     if (doDelete) deleteProfile(profile.id);
     setDeleteDialogOpen(false);
@@ -75,26 +68,27 @@ export function ProfileView({profile, ...other}: ProfileViewProps) {
       </AccordionSummary>
 
       <AccordionDetails>
-        {profile.steps.map((value, index) =>
-          index === editingStepIndex ? (
+        {profile.steps.map((value) =>
+          value.id === editingStepId ? (
             <ProfileStepForm
-              key={index}
-              aria-label={profile.name + "_" + index + "_edit"}
+              key={value.id}
+              aria-label={profile.name + "_" + value.id + "_edit"}
             />
           ) : (
             <ProfileStepView
-              aria-label={profile.name + "_" + index}
-              key={index}
-              index={index}
+              aria-label={profile.name + "_" + value.id}
+              key={value.id}
               step={value}
-              onEdit={setEditStep}
-              onDelete={onDeleteStep}
             />
           )
         )}
-        {profile.steps.length === editingStepIndex && (
-          <ProfileStepForm key={editingStepIndex} />
-        )}
+        {editingStepId &&
+          profile.steps.find((v) => v.id === editingStepId) === undefined && (
+            <ProfileStepForm
+              key={editingStepId}
+              aria-label={profile.name + "_" + editingStepId + "_edit"}
+            />
+          )}
       </AccordionDetails>
 
       <AccordionActions>
@@ -106,10 +100,7 @@ export function ProfileView({profile, ...other}: ProfileViewProps) {
           <Add />
         </IconButton>
 
-        <IconButton
-          aria-label="delete profile"
-          onClick={() => setDeleteDialogOpen(true)}
-        >
+        <IconButton aria-label="delete profile" onClick={openDeleteDialog}>
           <Delete />
         </IconButton>
       </AccordionActions>

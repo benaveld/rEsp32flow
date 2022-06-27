@@ -1,18 +1,20 @@
 #pragma once
 
-#include <vector>
+#include <map>
 #include <string>
 #include <ArduinoJson.h>
 #include <myTypes.h>
 
 namespace resp32flow
 {
+  using id_t = int;
   struct ProfileStep
   {
     static constexpr auto JSON_SIZE = 128;
     double Kp, Ki, Kd;
     resp32flow::temp_t targetTemp;
     resp32flow::time_t timer;
+    id_t id, profileId;
 
     ProfileStep() = default;
     ProfileStep(ArduinoJson::JsonVariant a_json);
@@ -22,8 +24,8 @@ namespace resp32flow
   struct Profile
   {
     std::string name;
-    int id;
-    std::vector<ProfileStep> steps;
+    id_t id;
+    std::map<decltype(id), ProfileStep> steps;
 
     Profile() = default;
     Profile(int id);

@@ -7,14 +7,13 @@ import {
   fetchBaseQuery,
 } from "@reduxjs/toolkit/dist/query/react";
 import { baseApiUrl, requestMode } from "../config";
-import { Profile } from "./profile";
-import { ProfileStep } from "./profileStep";
+import { Profile, ProfileStep } from "./profileTypes";
 
 const profileUrl = "profiles.json";
 export const profileApiUrl = `${baseApiUrl}/${profileUrl}`;
 
 const profilesAdapter = createEntityAdapter<Profile>({
-  selectId: (profile) => profile.id,
+  selectId: ({ id }) => id,
   sortComparer: (a, b) => a.name.localeCompare(b.name),
 });
 const initialState = profilesAdapter.getInitialState();
@@ -27,7 +26,7 @@ export const ProfileApi = createApi({
   }),
   reducerPath: "profileApi",
   endpoints: (build) => ({
-    getProfiles: build.query<EntityState<Profile>, void>({
+    getProfiles: build.query<typeof initialState, void>({
       query: () => profileUrl,
       transformResponse(response: Profile[]) {
         return profilesAdapter.setAll(
@@ -46,32 +45,27 @@ export const ProfileApi = createApi({
       onQueryStarted: optimisticUpdateCache<Profile>(profilesAdapter.setOne),
     }),
 
-    putProfileStep: build.mutation<
-      void,
-      { id: Profile["id"]; step: ProfileStep; stepIndex: number }
-    >({
-      query: ({ id, stepIndex, step }) => ({
-        url: `${profileUrl}?id=${id}&stepId=${stepIndex}`,
+    putProfileStep: build.mutation<void, { step: ProfileStep }>({
+      query: ({ step }) => ({
+        url: `${profileUrl}?id=${step.profileId}&stepId=${step.id}`,
         method: "PUT",
         body: step,
       }),
-      onQueryStarted: optimisticUpdateCache(
-        (draft, { id, step, stepIndex }) => {
-          let steps = selectProfileById(draft, id)?.steps;
-          if (!steps)
-            throw new Error(`profile with the id ${id} dose not exist!`);
+      onQueryStarted: optimisticUpdateCache((draft, { step }) => {
+        const { profileId, id } = step;
+        const steps = selectProfileById(draft, profileId)?.steps;
+        if (!steps)
+          throw new Error(`profile with the id ${profileId} dose not exist!`);
 
-          if (steps.length < stepIndex || stepIndex < 0)
-            throw new Error(
-              `Step index ${stepIndex} is out of bounds for profile ${id}.`
-            );
+        const editedSteps = steps.find((v) => v.id === id)
+          ? steps.map((v) => (v.id === id ? step : v)) // Update step
+          : steps.concat(step).sort((a, b) => a.id - b.id); // Add step
 
-          if (steps.length === stepIndex) steps = steps.concat(step);
-          else steps[stepIndex] = step;
-
-          draft = profilesAdapter.updateOne(draft, { id, changes: { steps } });
-        }
-      ),
+        draft = profilesAdapter.updateOne(draft, {
+          id: profileId,
+          changes: { steps: editedSteps },
+        });
+      }),
     }),
 
     deleteProfile: build.mutation<void, Profile["id"]>({
@@ -86,25 +80,25 @@ export const ProfileApi = createApi({
 
     deleteProfileStep: build.mutation<
       void,
-      { id: Profile["id"]; stepIndex: number }
+      { profileId: ProfileStep["profileId"]; stepId: ProfileStep["id"] }
     >({
-      query: ({ id, stepIndex }) => ({
-        url: `${profileUrl}?id=${id}&stepId=${stepIndex}`,
+      query: ({ profileId, stepId }) => ({
+        url: `${profileUrl}?id=${profileId}&stepId=${stepId}`,
         method: "DELETE",
       }),
-      onQueryStarted: optimisticUpdateCache((draft, { id, stepIndex }) => {
-        const steps = selectProfileById(draft, id)?.steps;
+      onQueryStarted: optimisticUpdateCache((draft, { profileId, stepId }) => {
+        const steps = selectProfileById(draft, profileId)?.steps;
         if (!steps)
-          throw new Error(`profile with the id ${id} dose not exist!`);
+          throw new Error(`profile with the id ${profileId} dose not exist!`);
 
-        if (steps.length <= stepIndex || stepIndex < 0)
+        if (steps.length <= stepId || stepId < 0)
           throw new Error(
-            `Step index ${stepIndex} is out of bounds for profile ${id}.`
+            `Step index ${stepId} is out of bounds for profile ${profileId}.`
           );
 
-        const updatedSteps = steps.filter((_, i) => i !== stepIndex);
+        const updatedSteps = steps.filter((v) => v.id !== stepId);
         draft = profilesAdapter.updateOne(draft, {
-          id,
+          id: profileId,
           changes: { steps: updatedSteps },
         });
       }),

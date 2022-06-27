@@ -12,16 +12,16 @@ import {
 import { SyntheticEvent, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { usePutProfileStepMutation } from "./profileApi";
-import { ProfileStep } from "./profileStep";
+import { ProfileStep } from "./profileTypes";
 import { stopEditingProfileStep } from "./state/profileSlice";
 
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export const ProfileStepForm = (props: ProfileStepFormProps) => {
-  const { profile, stepIndex, ...editingProfile } = useAppSelector(
+  const editingProfileStep = useAppSelector(
     (appState) => appState.profileState.editingProfileStep!
   );
-  const [step, setStep] = useState(editingProfile.step);
+  const [step, setStep] = useState(editingProfileStep);
   const dispatch = useAppDispatch();
   const [putProfileStep] = usePutProfileStepMutation();
 
@@ -38,7 +38,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    putProfileStep({id: profile.id, step, stepIndex});
+    putProfileStep({step});
     dispatch(stopEditingProfileStep());
   };
 

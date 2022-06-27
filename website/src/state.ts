@@ -1,6 +1,6 @@
 import { createLogger } from "redux-logger";
 import { configureStore, isRejected } from "@reduxjs/toolkit";
-import profileSlice from "./profile/state/profileSlice";
+import { profileSlice } from "./profile/state/profileSlice";
 import { statusApi } from "./status/statusApi";
 import { setupListeners } from "@reduxjs/toolkit/dist/query";
 import { ProfileApi } from "./profile/profileApi";

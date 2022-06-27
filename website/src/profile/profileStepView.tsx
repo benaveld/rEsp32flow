@@ -12,7 +12,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { ProfileStep } from "./profileStep";
+import { useAppDispatch } from "../hooks";
+import { useDeleteProfileStepMutation } from "./profileApi";
+import { ProfileStep } from "./profileTypes";
+import { editProfileStep } from "./state/profileSlice";
 
 type createActionProps = {
   icon: any;
@@ -29,21 +32,14 @@ function createAction(props: createActionProps) {
   );
 }
 
-const addAction = (
-  actions: JSX.Element[],
-  isEnabled: boolean,
-  props: createActionProps
-) => (isEnabled ? actions.concat(createAction(props)) : actions);
-
 type ProfileStepViewProps = {
-  index: number;
   step: ProfileStep;
-  onEdit?: (index: number) => void;
-  onDelete?: (index: number) => void;
 } & CardProps;
 
 export function ProfileStepView(props: ProfileStepViewProps) {
-  const { step, index, onEdit, onDelete, ...other } = props;
+  const [deleteProfileStep] = useDeleteProfileStepMutation();
+  const dispatch = useAppDispatch();
+  const { step, ...other } = props;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -52,25 +48,27 @@ export function ProfileStepView(props: ProfileStepViewProps) {
     setAnchorEl(null);
   };
 
-  let actions = addAction([], onEdit !== undefined, {
-    key: "edit",
-    text: "Edit step",
-    icon: <Edit fontSize="small" />,
-    onClick: () => {
-      handleClose();
-      onEdit!(index);
-    },
-  });
+  const actions = [
+    createAction({
+      key: "edit",
+      text: "Edit step",
+      icon: <Edit fontSize="small" />,
+      onClick: () => {
+        handleClose();
+        dispatch(editProfileStep(step));
+      },
+    }),
 
-  actions = addAction(actions, onDelete !== undefined, {
-    key: "delete",
-    text: "Delete",
-    icon: <Delete fontSize="small" />,
-    onClick: () => {
-      handleClose();
-      onDelete!(index);
-    },
-  });
+    createAction({
+      key: "delete",
+      text: "Delete",
+      icon: <Delete fontSize="small" />,
+      onClick: () => {
+        handleClose();
+        deleteProfileStep({profileId: step.profileId, stepId: step.id});
+      },
+    }),
+  ];
 
   return (
     <Card {...other}>

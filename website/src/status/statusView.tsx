@@ -53,7 +53,7 @@ export default function StatusView({
         <Typography noWrap>Chip: {status?.chip.toFixed(2) ?? 0.0}°C</Typography>
       </Box>
 
-      {status?.isOn && runningProfile ? (
+      {status && runningProfile ? (
         <Card>
           <Typography>Running {runningProfile!.name}</Typography>
           <Typography>Relay on for {status.relayOnTime / 1000}sec</Typography>
@@ -63,15 +63,13 @@ export default function StatusView({
             Current step {Math.round(status.stepTime / 1000)}sec
           </Typography>
           <ProfileStepView
-            index={status.profileStepIndex}
-            step={runningProfile!.steps[status.profileStepIndex]}
+            step={runningProfile.steps[status.profileStepIndex]}
           />
-          {runningProfile!.steps.length > status.profileStepIndex + 1 && (
+          {runningProfile.steps.length > status.profileStepIndex + 1 && (
             <Box>
               <Typography>Next step</Typography>
               <ProfileStepView
-                index={status.profileStepIndex + 1}
-                step={runningProfile!.steps[status.profileStepIndex + 1]}
+                step={runningProfile.steps[status.profileStepIndex + 1]}
               />
             </Box>
           )}

@@ -15,12 +15,12 @@ import {
 } from "@mui/material";
 import { useState, SyntheticEvent } from "react";
 import { getErrorMessage } from "../errorUtils";
-import { getUniqId } from "./profile";
 import {
   selectAllProfiles,
   useGetProfilesQuery,
   usePutProfileMutation,
 } from "./profileApi";
+import { getUniqId } from "./profileTypes";
 import { ProfileView } from "./profileView";
 
 export default function ProfileList(props: PaperProps) {
