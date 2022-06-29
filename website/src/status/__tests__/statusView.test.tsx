@@ -16,7 +16,7 @@ const testStatus: StatusGetResponse = {
   fault: 0,
   faultText: [],
   profileId: 0,
-  profileStepIndex: 0,
+  profileStepId: 0,
   relayOnTime: 0,
   stepTime: 0,
   updateRate: 20000,

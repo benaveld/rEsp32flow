@@ -23,7 +23,7 @@ void resp32flow::TemperatureMAX31856::begin()
 {
   if (!m_thermo.begin())
   {
-    throw std::runtime_error("Can't initialize MAX31856 sencor.");
+    throw std::runtime_error("Can't initialize MAX31856 sensor.");
   }
 
   m_thermo.setThermocoupleType(MAX31856_TCTYPE_K);

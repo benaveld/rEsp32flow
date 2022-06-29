@@ -1,6 +1,7 @@
 import { Box, createTheme, Paper, ThemeProvider } from "@mui/material";
 import { blue, red } from "@mui/material/colors";
 import ProfileList from "./profile/profileList";
+import RelayStatusView from "./relay/relayStatusView";
 import StatusView from "./status/statusView";
 import TemperatureChart from "./status/temperatureChart";
 
@@ -20,6 +21,7 @@ function App() {
           sx={{ display: "flex", flexDirection: "column", padding: "1ch" }}
         >
           <StatusView />
+          <RelayStatusView />
           <ProfileList />
         </Paper>
         <Box

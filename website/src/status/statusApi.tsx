@@ -18,7 +18,7 @@ export interface HistoryGetResponse {
 export type StatusGetResponse = {
   isOn: boolean;
   profileId: number;
-  profileStepIndex: number;
+  profileStepId: number;
   stepTime: number;
   relayOnTime: number;
   updateRate: number;

@@ -3,6 +3,8 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 
+class JsonI;
+
 namespace resp32flow
 {
   class RelayController;
@@ -12,6 +14,7 @@ namespace resp32flow
   {
     namespace api
     {
+      void handleRelayGet(JsonI *a_relayController, AsyncWebServerRequest *request);
       void handleJsonRelay(resp32flow::RelayController *a_relayController, resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *request, JsonVariant &json);
     }
   }

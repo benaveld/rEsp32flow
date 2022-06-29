@@ -1,6 +1,15 @@
 #include "relayApi.h"
+#include <AsyncJson.h>
 #include <relayController.h>
 #include <profileHandler.h>
+
+void resp32flow::webServer::api::handleRelayGet(JsonI *a_relayController, AsyncWebServerRequest *a_request)
+{
+  auto response = new AsyncJsonResponse(false, 1024U);
+  a_relayController->toJSON(response->getRoot());
+  response->setLength();
+  a_request->send(response);
+}
 
 void resp32flow::webServer::api::handleJsonRelay(resp32flow::RelayController *a_relayController, resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
 {
