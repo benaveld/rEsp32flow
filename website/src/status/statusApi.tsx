@@ -16,12 +16,6 @@ export interface HistoryGetResponse {
 }
 
 export type StatusGetResponse = {
-  isOn: boolean;
-  profileId: number;
-  profileStepId: number;
-  stepTime: number;
-  relayOnTime: number;
-  updateRate: number;
   fault: number;
   faultText: string[];
 } & TemperatureHistorySlice;
@@ -39,7 +33,7 @@ const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
 export const historySelector = historyAdapter.getSelectors();
 
 export const statusApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: `${baseApiUrl}/`, mode: requestMode }),
+  baseQuery: fetchBaseQuery({ baseUrl: `http://${baseApiUrl}`, mode: requestMode }),
   reducerPath: "status",
   tagTypes: ["history"],
   endpoints: (build) => ({
@@ -53,10 +47,8 @@ export const statusApi = createApi({
               "getTemperatureHistory",
               undefined,
               (draft) => {
-                //TODO: check if statusUpdate.uptime is less then any in draft.
-                // if it is the invalidate the cache.
-                const lastUptime = draft.ids[draft.ids.length - 1];
-                if (lastUptime > statusUpdate.uptime)
+                const lastUptime = draft.ids.at(-1);
+                if (lastUptime && lastUptime > statusUpdate.uptime)
                   dispatch(statusApi.util.invalidateTags(["history"]));
 
                 draft = historyAdapter.setOne(draft, statusUpdate);

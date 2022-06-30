@@ -32,3 +32,8 @@ export function getUniqId(profiles: Profile[]) {
 
   return id;
 }
+
+export const selectProfileStep = (
+  profile: Profile,
+  stepId: ProfileStep["id"]
+) => profile.steps.find((v) => v.id === stepId);

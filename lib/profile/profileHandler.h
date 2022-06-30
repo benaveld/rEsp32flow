@@ -7,7 +7,7 @@
 
 namespace resp32flow
 {
-  class ProfileHandler : public std::map<int32_t, Profile>
+  class ProfileHandler : public std::map<resp32flow::id_t, Profile>
   {
   public:
     void toJson(ArduinoJson::JsonArray a_json) const;

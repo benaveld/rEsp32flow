@@ -32,6 +32,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
     };
 
   function isValid() {
+    //TODO assert that Kp and Ki are bigger then 0.
     return step.timer >= 0;
   }
 

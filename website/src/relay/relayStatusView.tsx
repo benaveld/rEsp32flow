@@ -1,37 +1,37 @@
-import { Box, Button, Card, CardProps, Typography } from "@mui/material";
+import { Button, Card, CardProps, Typography } from "@mui/material";
 import { ProfileStepView } from "../profile/profileStepView";
-import { useGetStatusUpdateQuery } from "../status/statusApi";
-import { stopRelay } from "./relayActions";
+import { useEStopRelayMutation, useGetRelayStatusQuery } from "./relayApi";
 import { selectProfileById, useGetProfilesQuery } from "../profile/profileApi";
 
 const RelayStatusView = (props: CardProps) => {
-  //TODO use websocket
-  const { data: status } = useGetStatusUpdateQuery();
+  const [stopRelay] = useEStopRelayMutation();
+  const { data: status } = useGetRelayStatusQuery();
+  const info = status?.info;
 
   const { data: profileState } = useGetProfilesQuery();
-  const runningProfile = status?.isOn
-    ? selectProfileById(profileState, status.profileId)
+  const runningProfile = info
+    ? selectProfileById(profileState, info.profileId)
     : undefined;
 
-  if (status && runningProfile) {
+  if (info && runningProfile) {
     return (
       <Card {...props}>
         <Typography>Running {runningProfile.name}</Typography>
-        <Typography>Relay on for {status.relayOnTime / 1000}sec</Typography>
-        <Typography>Update every {status.updateRate / 1000}sec</Typography>
-        <Button onClick={stopRelay}>Stop</Button>
+        <Typography>Relay on for {info.relayOnTime / 1000}sec</Typography>
+        <Typography>Update every {info.updateRate / 1000}sec</Typography>
+        <Button onClick={() => stopRelay()}>Stop</Button>
         <Typography>
-          Current step {Math.round(status.stepTime / 1000)}sec
+          Current step {Math.round(info.stepTime / 1000)}sec
         </Typography>
-        <ProfileStepView step={runningProfile.steps[status.profileStepId]} />
-        {runningProfile.steps.length > status.profileStepId + 1 && (
+        <ProfileStepView step={runningProfile.steps[info.stepId]} />
+        {/* {runningProfile.steps.length > info.profileStepId + 1 && (
           <Box>
             <Typography>Next step</Typography>
             <ProfileStepView
-              step={runningProfile.steps[status.profileStepId + 1]}
+              step={runningProfile.steps[info.profileStepId + 1]}
             />
           </Box>
-        )}
+        )} */}
       </Card>
     );
   } else return <Typography noWrap>Not running</Typography>;

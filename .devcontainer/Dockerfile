@@ -10,6 +10,7 @@ RUN apk update \
     gcompat \
     npm \
     py3-pip \
+    python3 \
   && pip install -U platformio \
   && npm i -g npm-check-updates 
 

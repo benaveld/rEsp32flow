@@ -1,6 +1,7 @@
 #include "myPid.h"
 #include <stdexcept>
 #include <assert.h>
+#include <esp32-hal-log.h>
 
 void resp32flow::MyPid::init(input_t a_input, input_t a_target, result_t a_max, pid_t a_Kp, pid_t a_Ki, pid_t a_Kd)
 {

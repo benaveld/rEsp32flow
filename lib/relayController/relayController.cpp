@@ -1,16 +1,20 @@
 #include "relayController.h"
 
+#include <assert.h>
 #include <Arduino.h>
+#include <functional>
 #include <profile.h>
 #include <temperatureSensorI.h>
 #include <freeRTOSUtils.h>
+
+#include "relayWebSocket.h"
 
 using rtosUtils::waitRecursiveTake;
 
 void controllerLoop(void *parameter)
 {
   auto controller = (resp32flow::RelayController *)parameter;
-  for (;;)
+  while (controller->isOn())
   {
     controller->tick();
   }
@@ -35,6 +39,8 @@ resp32flow::RelayController::~RelayController()
 
 void resp32flow::RelayController::start(const Profile &a_profile)
 {
+  assert(m_ws != nullptr);
+  assert(m_temperatureSensor != nullptr);
   if (m_selectedProfile != nullptr)
   {
     log_e("RelayController already on.");
@@ -45,7 +51,7 @@ void resp32flow::RelayController::start(const Profile &a_profile)
   m_selectedProfile = &a_profile;
   m_currentStepItr = m_selectedProfile->steps.cbegin();
   setupProfileStep();
-
+  m_ws->updateClients();
   xSemaphoreGiveRecursive(m_mutex);
 
   xTaskCreate(controllerLoop, "RelayController loop", STACK_DEPTH, this, TASK_PRIORITY, &m_taskHandler);
@@ -54,9 +60,16 @@ void resp32flow::RelayController::start(const Profile &a_profile)
 void resp32flow::RelayController::stop()
 {
   waitRecursiveTake(m_mutex);
-  vTaskDelete(m_taskHandler);
-  digitalWrite(m_relayPin, LOW);
   m_selectedProfile = nullptr;
+  m_ws->updateClients();
+  xSemaphoreGiveRecursive(m_mutex);
+}
+
+void resp32flow::RelayController::eStop()
+{
+  waitRecursiveTake(m_mutex);
+  digitalWrite(m_relayPin, LOW);
+  stop();
   xSemaphoreGiveRecursive(m_mutex);
 }
 
@@ -76,7 +89,7 @@ void resp32flow::RelayController::setupProfileStep()
 void resp32flow::RelayController::tick()
 {
   waitRecursiveTake(m_mutex);
-  if (m_selectedProfile == nullptr)
+  if (isOn())
   {
     xSemaphoreGiveRecursive(m_mutex);
     vTaskDelete(NULL);
@@ -91,17 +104,17 @@ void resp32flow::RelayController::tick()
     m_currentStepItr++;
     if (m_currentStepItr == m_selectedProfile->steps.cend())
     {
-      m_selectedProfile = nullptr;
+      stop();
       return;
     }
     setupProfileStep();
   }
 
   m_relayOnTime = m_pid.calc(ovenTemp);
-
-  xSemaphoreGiveRecursive(m_mutex);
+  m_ws->updateClients();
 
   digitalWrite(m_relayPin, HIGH);
+  xSemaphoreGiveRecursive(m_mutex);
   vTaskDelay(m_relayOnTime / portTICK_PERIOD_MS);
   digitalWrite(m_relayPin, LOW);
   vTaskDelay((m_sampleRate - m_relayOnTime) / portTICK_PERIOD_MS);
@@ -125,15 +138,14 @@ resp32flow::time_t resp32flow::RelayController::getStepTimer() const
 void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) const
 {
   waitRecursiveTake(m_mutex);
-  a_jsonObject["isOn"] = m_selectedProfile != nullptr;
-  a_jsonObject["sampleRate"] = m_sampleRate;
   if (isOn())
   {
-    a_jsonObject["profileId"] = m_selectedProfile->id;
-    a_jsonObject["profileStepId"] = m_currentStepItr->second.id;
-    a_jsonObject["stepTime"] = getStepTimer();
-    a_jsonObject["relayOnTime"] = m_relayOnTime;
-    a_jsonObject["updateRate"] = m_sampleRate;
+    auto info = a_jsonObject.createNestedObject("info");
+    info["profileId"] = m_selectedProfile->id;
+    info["stepId"] = m_currentStepItr->second.id;
+    info["stepTime"] = getStepTimer();
+    info["relayOnTime"] = m_relayOnTime;
+    info["updateRate"] = m_sampleRate;
   }
   xSemaphoreGiveRecursive(m_mutex);
 }
@@ -155,4 +167,10 @@ auto resp32flow::RelayController::getSampleRate() const -> decltype(m_sampleRate
 bool resp32flow::RelayController::isOn() const
 {
   return m_selectedProfile != nullptr;
+}
+
+void resp32flow::RelayController::attachWebSocket(decltype(m_ws) a_ws)
+{
+  assert(a_ws != nullptr);
+  m_ws = a_ws;
 }

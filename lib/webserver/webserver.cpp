@@ -13,26 +13,28 @@
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
 #include <temperatureHistory.h>
-#include <relayController.h>
+#include <relayWebSocket.h>
 #include <profileHandler.h>
 #include <string>
 #include <ESPmDNS.h>
 #include "credential.h"
 #include "profileApi.h"
 #include "statusApi.h"
-#include "relayApi.h"
+#include <functional>
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
 }
 
-void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, RelayController *a_relayController, ProfileHandler *a_profileHandler)
+void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, RelayWebSocket *a_relayWebSocket, ProfileHandler *a_profileHandler)
 {
+  using namespace std::placeholders;
+  using namespace resp32flow::webServer::api;
   if (a_temperatureSensor == nullptr)
     throw std::invalid_argument("a_temperatureSensor can't be pointing to null.");
 
-  if (a_relayController == nullptr)
-    throw std::invalid_argument("a_relayController can't be pointing to null.");
+  if (a_relayWebSocket == nullptr)
+    throw std::invalid_argument("a_relayWebSocket can't be pointing to null.");
 
   if (!SPIFFS.begin())
   {
@@ -67,7 +69,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   }
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  // Respondeds to CORS pre-flight requests.
+  // Respones to CORS pre-flight requests.
   m_server.onNotFound([](AsyncWebServerRequest *request)
                       {
   if (request->method() == HTTP_OPTIONS) {
@@ -87,8 +89,7 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   m_server.serveStatic("/favicon.ico", SPIFFS, "/favicon.ico");
   m_server.serveStatic("/asset-manifest.json", SPIFFS, "/asset-manifest.json");
 
-  m_server.on("/api/status.json", HTTP_GET, [a_temperatureSensor, a_relayController](AsyncWebServerRequest *request)
-              { resp32flow::webServer::respondStatusJson(a_relayController, a_temperatureSensor->getSensor(), request); });
+  m_server.on("/api/status.json", HTTP_GET, std::bind(respondStatusJson, a_temperatureSensor->getSensor(), _1));
 
   m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
               {
@@ -102,20 +103,13 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
                 response->setLength();
                 request->send(response); });
 
-  m_server.on("/api/profiles.json", HTTP_GET, [a_profileHandler](AsyncWebServerRequest *request)
-              { resp32flow::webServer::api::handleProfile(a_profileHandler, request); });
-  m_server.on("/api/profiles.json", HTTP_DELETE, [a_profileHandler](AsyncWebServerRequest *request)
-              { resp32flow::webServer::api::handleProfile(a_profileHandler, request); });
+  m_server.on("/api/profiles.json", HTTP_GET | HTTP_DELETE, std::bind(handleProfile, a_profileHandler, _1));
 
-  auto profileJsonHandler = new AsyncCallbackJsonWebHandler(
-      "/api/profiles.json", [a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
-      { resp32flow::webServer::api::handleJsonProfile(a_profileHandler, request, json); },
-      1024U);
-  m_server.addHandler(profileJsonHandler);
+  m_server.addHandler(new AsyncCallbackJsonWebHandler(
+      "/api/profiles.json", std::bind(handleJsonProfile, a_profileHandler, _1, _2),
+      1024U));
 
-  auto relayApiHandler = new AsyncCallbackJsonWebHandler("/api/relay.json", [a_relayController, a_profileHandler](AsyncWebServerRequest *request, JsonVariant &json)
-                                                         { resp32flow::webServer::api::handleJsonRelay(a_relayController, a_profileHandler, request, json); });
-  m_server.addHandler(relayApiHandler);
+  a_relayWebSocket->attachToService(m_server);
 
   m_server.begin();
   MDNS.addService("http", "tcp", 80);

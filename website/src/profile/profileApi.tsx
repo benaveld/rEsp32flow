@@ -20,7 +20,7 @@ const initialState = profilesAdapter.getInitialState();
 
 export const ProfileApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: baseApiUrl,
+    baseUrl: `http://${baseApiUrl}`,
     mode: requestMode,
     headers: { "Content-Type": "application/json" },
   }),
