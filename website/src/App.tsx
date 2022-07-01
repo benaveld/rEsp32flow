@@ -1,5 +1,6 @@
 import { Box, createTheme, Paper, ThemeProvider } from "@mui/material";
 import { blue, red } from "@mui/material/colors";
+import { useDocTitle } from "./hooks";
 import ProfileList from "./profile/profileList";
 import RelayStatusView from "./relay/relayStatusView";
 import StatusView from "./status/statusView";
@@ -13,6 +14,8 @@ const theme = createTheme({
 });
 
 function App() {
+  useDocTitle("rEsp32flow");
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex", flexDirection: "row" }}>
