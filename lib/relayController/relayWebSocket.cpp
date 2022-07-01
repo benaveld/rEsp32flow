@@ -89,7 +89,13 @@ void resp32flow::RelayWebSocket::handlePost(AsyncWebServerRequest *a_request)
       errorMessage.concat(id);
       return a_request->send(406, "text/plain", errorMessage);
     }
-    m_controller.start(profileItr->second);
+    auto error = m_controller.start(profileItr->second);
+    if (error.isError)
+    {
+      const auto &message = error.fullMessage();
+      log_e("%s", message.c_str());
+      return a_request->send(406, "text/plain", message);
+    }
   }
 
   if (a_request->hasParam("eStop"))

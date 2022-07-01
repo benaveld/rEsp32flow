@@ -34,8 +34,12 @@ export const RelayApi = createApi({
         try {
           await cacheDataLoaded;
 
-          ws.addEventListener("message", (ev: MessageEvent<RelayApiGet>) =>
-            updateCachedData((draft) => draft = ev.data)
+          ws.addEventListener("message", (ev) =>
+            updateCachedData((draft) => (draft = JSON.parse(ev.data)))
+          );
+
+          ws.addEventListener("close", (ev) =>
+            updateCachedData((draft) => (draft = { ...draft, info: undefined }))
           );
         } finally {
           await cacheEntryRemoved;

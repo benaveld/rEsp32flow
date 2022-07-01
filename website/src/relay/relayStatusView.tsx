@@ -2,28 +2,37 @@ import { Button, Card, CardProps, Typography } from "@mui/material";
 import { ProfileStepView } from "../profile/profileStepView";
 import { useEStopRelayMutation, useGetRelayStatusQuery } from "./relayApi";
 import { selectProfileById, useGetProfilesQuery } from "../profile/profileApi";
+import { selectProfileStep } from "../profile/profileTypes";
 
 const RelayStatusView = (props: CardProps) => {
   const [stopRelay] = useEStopRelayMutation();
-  const { data: status } = useGetRelayStatusQuery();
-  const info = status?.info;
+  const { info } = useGetRelayStatusQuery(undefined, {
+    selectFromResult: ({ data }) => ({ info: data?.info }),
+  });
 
-  const { data: profileState } = useGetProfilesQuery();
-  const runningProfile = info
-    ? selectProfileById(profileState, info.profileId)
-    : undefined;
+  const { runningProfile } = useGetProfilesQuery(undefined, {
+    selectFromResult: ({ data }) => ({
+      runningProfile: info
+        ? selectProfileById(data, info.profileId)
+        : undefined,
+    }),
+  });
+
+  const currentStep = selectProfileStep(runningProfile, info?.stepId);
 
   if (info && runningProfile) {
     return (
       <Card {...props}>
         <Typography>Running {runningProfile.name}</Typography>
-        <Typography>Relay on for {info.relayOnTime / 1000}sec</Typography>
+        <Typography>
+          Relay on for {(info.relayOnTime / 1000).toFixed(2)}sec
+        </Typography>
         <Typography>Update every {info.updateRate / 1000}sec</Typography>
         <Button onClick={() => stopRelay()}>Stop</Button>
         <Typography>
           Current step {Math.round(info.stepTime / 1000)}sec
         </Typography>
-        <ProfileStepView step={runningProfile.steps[info.stepId]} />
+        <ProfileStepView step={currentStep!} />
         {/* {runningProfile.steps.length > info.profileStepId + 1 && (
           <Box>
             <Typography>Next step</Typography>

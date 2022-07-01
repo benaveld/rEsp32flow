@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pid.h>
+#include <ErrorMessage.h>
 
 namespace resp32flow
 {
@@ -11,7 +12,7 @@ namespace resp32flow
     using result_t = float;
     using pid_t = float;
 
-    void init(input_t a_input, input_t a_target, result_t a_max, pid_t a_Kp, pid_t a_Ki, pid_t a_Kd) noexcept(false);
+    ErrorMessage init(input_t a_input, input_t a_target, result_t a_max, pid_t a_Kp, pid_t a_Ki, pid_t a_Kd) noexcept(false);
     result_t calc(input_t a_input);
 
   private:

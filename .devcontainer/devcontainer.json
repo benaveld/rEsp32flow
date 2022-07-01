@@ -23,6 +23,7 @@
 
   "settings": {
     "platformio-ide.customPATH": "/usr/bin",
+    "platformio-ide.forceUploadAndMonitor": true,
     "platformio-ide.useBuiltinPIOCore": false,
     "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
     "platformio-ide.disablePIOHomeStartup": true,

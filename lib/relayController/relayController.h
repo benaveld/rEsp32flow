@@ -5,6 +5,7 @@
 #include <jsonI.h>
 #include <profile.h>
 #include <myPid.h>
+#include <ErrorMessage.h>
 
 namespace resp32flow
 {
@@ -17,7 +18,7 @@ namespace resp32flow
     using stepItr_t = decltype(Profile::steps)::const_iterator;
 
     constexpr static UBaseType_t TASK_PRIORITY = 10U;
-    constexpr static auto STACK_DEPTH = 2048U;
+    constexpr static auto STACK_DEPTH = 4096U;
 
     MyPid m_pid;
     const uint8_t m_relayPin;
@@ -34,13 +35,13 @@ namespace resp32flow
     double m_relayOnTime = 0;    // linked into pid output
     double m_sampleRate = 20000; // in ms
 
-    void setupProfileStep();
+    ErrorMessage setupProfileStep();
     void stop();
 
   public:
     RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor);
     ~RelayController();
-    void start(const Profile &a_profile);
+    ErrorMessage start(const Profile &a_profile);
     void eStop();
     void tick();
 

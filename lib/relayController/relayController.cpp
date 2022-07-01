@@ -37,24 +37,27 @@ resp32flow::RelayController::~RelayController()
   }
 }
 
-void resp32flow::RelayController::start(const Profile &a_profile)
+auto resp32flow::RelayController::start(const Profile &a_profile) -> ErrorMessage
 {
   assert(m_ws != nullptr);
   assert(m_temperatureSensor != nullptr);
   if (m_selectedProfile != nullptr)
   {
-    log_e("RelayController already on.");
-    return;
+    return {true, 1001, "RelayController already on."};
   }
 
   waitRecursiveTake(m_mutex);
   m_selectedProfile = &a_profile;
   m_currentStepItr = m_selectedProfile->steps.cbegin();
-  setupProfileStep();
-  m_ws->updateClients();
+  auto error = setupProfileStep();
   xSemaphoreGiveRecursive(m_mutex);
+  if (error.isError)
+    return error;
+
+  m_ws->updateClients();
 
   xTaskCreate(controllerLoop, "RelayController loop", STACK_DEPTH, this, TASK_PRIORITY, &m_taskHandler);
+  return {false};
 }
 
 void resp32flow::RelayController::stop()
@@ -62,39 +65,38 @@ void resp32flow::RelayController::stop()
   waitRecursiveTake(m_mutex);
   m_selectedProfile = nullptr;
   m_ws->updateClients();
+  digitalWrite(m_relayPin, LOW);
   xSemaphoreGiveRecursive(m_mutex);
 }
 
 void resp32flow::RelayController::eStop()
 {
-  waitRecursiveTake(m_mutex);
-  digitalWrite(m_relayPin, LOW);
   stop();
-  xSemaphoreGiveRecursive(m_mutex);
 }
 
-void resp32flow::RelayController::setupProfileStep()
+auto resp32flow::RelayController::setupProfileStep() -> ErrorMessage
 {
   if (m_selectedProfile == nullptr)
-    return;
+    return {true, 1002, "Tried to setup profile step without selecting a profile"};
 
   waitRecursiveTake(m_mutex);
+  m_stepStartTime = millis();
   auto step = m_currentStepItr->second;
   auto ovenTemp = m_temperatureSensor->getOvenTemp();
-  m_pid.init(ovenTemp, step.targetTemp, m_sampleRate, step.Kp, step.Ki, step.Kd);
-  m_stepStartTime = millis();
+  auto pidError = m_pid.init(ovenTemp, step.targetTemp, m_sampleRate, step.Kp, step.Ki, step.Kd);
   xSemaphoreGiveRecursive(m_mutex);
+  if (pidError.isError)
+    eStop();
+
+  return pidError;
 }
 
 void resp32flow::RelayController::tick()
 {
-  waitRecursiveTake(m_mutex);
-  if (isOn())
-  {
-    xSemaphoreGiveRecursive(m_mutex);
-    vTaskDelete(NULL);
+  if (!isOn())
     return;
-  }
+
+  waitRecursiveTake(m_mutex);
 
   auto ovenTemp = m_temperatureSensor->getOvenTemp();
   auto stepTime = getStepTimer();
@@ -105,6 +107,7 @@ void resp32flow::RelayController::tick()
     if (m_currentStepItr == m_selectedProfile->steps.cend())
     {
       stop();
+      xSemaphoreGiveRecursive(m_mutex);
       return;
     }
     setupProfileStep();
