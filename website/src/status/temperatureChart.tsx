@@ -23,7 +23,7 @@ const TemperatureChart = () => {
     return { ...value, age: latestUptime - value.uptime };
   });
 
-  const data: ChartData<"line", any, unknown> = {
+  const data: ChartData<"line", typeof agedHistory> = {
     datasets: [
       {
         label: "Oven",

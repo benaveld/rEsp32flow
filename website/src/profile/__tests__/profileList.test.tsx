@@ -41,7 +41,9 @@ test("edit and save step", async () => {
     Kd: 89,
   };
 
-  const stub = jest.fn((req: RestRequest) => {});
+  const stub = jest.fn((_req: RestRequest) => {
+    // Do nothing.
+  });
 
   server.use(
     rest.get(profileApiUrl, (req, res, ctx) =>

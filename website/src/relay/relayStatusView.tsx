@@ -21,6 +21,11 @@ const RelayStatusView = (props: CardProps) => {
   const currentStep = selectProfileStep(runningProfile, info?.stepId);
 
   if (info && runningProfile) {
+    if (currentStep === undefined)
+      throw new Error(
+        "currentStep is undefined even do runningProfile is defined."
+      );
+
     return (
       <Card {...props}>
         <Typography>Running {runningProfile.name}</Typography>
@@ -32,7 +37,7 @@ const RelayStatusView = (props: CardProps) => {
         <Typography>
           Current step {Math.round(info.stepTime / 1000)}sec
         </Typography>
-        <ProfileStepView step={currentStep!} />
+        <ProfileStepView step={currentStep} />
         {/* {runningProfile.steps.length > info.profileStepId + 1 && (
           <Box>
             <Typography>Next step</Typography>

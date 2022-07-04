@@ -35,10 +35,10 @@ export const RelayApi = createApi({
           await cacheDataLoaded;
 
           ws.addEventListener("message", (ev) =>
-            updateCachedData((draft) => (draft = JSON.parse(ev.data)))
+            updateCachedData((_draft) => (_draft = JSON.parse(ev.data)))
           );
 
-          ws.addEventListener("close", (ev) =>
+          ws.addEventListener("close", () =>
             updateCachedData((draft) => (draft = { ...draft, info: undefined }))
           );
         } finally {

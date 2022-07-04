@@ -62,7 +62,9 @@ export const statusApi = createApi({
               }
             )
           );
-        } catch {}
+        } catch {
+          dispatch(statusApi.util.invalidateTags(["history"]));
+        }
       },
     }),
 

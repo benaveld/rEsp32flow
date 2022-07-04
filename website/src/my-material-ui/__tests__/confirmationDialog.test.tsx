@@ -1,5 +1,10 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "../../../utils/test-utils";
+import {
+  doNothing,
+  fireEvent,
+  render,
+  screen,
+} from "../../../utils/test-utils";
 import ConfirmationDialog from "../confirmationDialog";
 
 test("open dialog with correct text", () => {
@@ -10,7 +15,7 @@ test("open dialog with correct text", () => {
   render(
     <ConfirmationDialog
       title={title}
-      onClose={(_) => {}}
+      onClose={doNothing}
       confirmationText={confirmationText}
       cancelText={cancelText}
       open={true}
@@ -68,7 +73,7 @@ test("display dialog children", () => {
   const text = "Testing with children";
 
   render(
-    <ConfirmationDialog title={title} onClose={(_) => {}} open={true}>
+    <ConfirmationDialog title={title} onClose={doNothing} open={true}>
       <p>{text}</p>
     </ConfirmationDialog>
   );

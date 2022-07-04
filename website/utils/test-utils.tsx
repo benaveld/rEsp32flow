@@ -14,6 +14,10 @@ import { Provider } from "react-redux";
 import { store } from "../src/state";
 import * as customQueries from "./test-queries";
 
+export const doNothing = function () {
+  // Do nothing at all
+};
+
 export const queries = { ...dltQueries, ...customQueries };
 
 export const useActDispatch = (...args: Parameters<typeof store.dispatch>) =>
@@ -24,18 +28,19 @@ export const useActDispatch = (...args: Parameters<typeof store.dispatch>) =>
 export const inputFormValue = (
   form: HTMLElement,
   label: string | RegExp,
-  value: any,
+  value: unknown,
   options?: SelectorMatcherOptions
 ) =>
   fireEvent.input(within(form).getByLabelText(label, options), {
     target: { value },
   });
 
-export const expectParamToBe = (url: URL, param: string, value: any) => {
+export const expectParamToBe = (url: URL, param: string, value: unknown) => {
   const paramValue = url.searchParams.get(param);
   expect(paramValue).not.toBe(null);
-  if (typeof value === "number") return expect(+paramValue!).toBe(value);
-  expect(paramValue!).toBe(value);
+  if (paramValue === null) return;
+  if (typeof value === "number") return expect(+paramValue).toBe(value);
+  expect(paramValue).toBe(value);
 };
 
 const customRender = (

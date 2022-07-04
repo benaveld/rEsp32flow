@@ -19,8 +19,13 @@ type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const editingProfileStep = useAppSelector(
-    (appState) => appState.profileState.editingProfileStep!
+    (appState) => appState.profileState.editingProfileStep
   );
+  if (editingProfileStep === undefined)
+    throw new Error(
+      "Can't render ProfileStepForm if editingProfileStep is undefined."
+    );
+
   const [step, setStep] = useState(editingProfileStep);
   const dispatch = useAppDispatch();
   const [putProfileStep] = usePutProfileStepMutation();
@@ -39,7 +44,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid()) return;
-    putProfileStep({step});
+    putProfileStep({ step });
     dispatch(stopEditingProfileStep());
   };
 

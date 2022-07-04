@@ -11,14 +11,14 @@ import {
   MenuItemProps,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useAppDispatch } from "../hooks";
 import { useDeleteProfileStepMutation } from "./profileApi";
 import { ProfileStep } from "./profileTypes";
 import { editProfileStep } from "./state/profileSlice";
 
 type createActionProps = {
-  icon: any;
+  icon: ReactNode;
   text: string;
 } & MenuItemProps;
 
