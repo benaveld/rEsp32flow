@@ -16,34 +16,30 @@ import { useDeleteProfileMutation } from "./profileApi";
 import { ProfileStepForm } from "./profileStepForm";
 import { ProfileStepView } from "./profileStepView";
 import { Profile, selectProfileStep } from "./profileTypes";
-import { addProfileStep } from "./state/profileSlice";
+import {
+  addProfileStep,
+  selectEditingProfileStepsId,
+} from "./state/profileSlice";
 
 type ProfileViewProps = {
   profile: Profile;
 } & Omit<AccordionProps, "children">;
 
-export function ProfileView({ profile, ...other }: ProfileViewProps) {
-  const [startRelay] = useStartRelayMutation();
-  const { editingProfileStep } = useAppSelector(
-    (appState) => appState.profileState
-  );
-  const [deleteProfile] = useDeleteProfileMutation();
+export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
+  const editingStepId = useAppSelector(selectEditingProfileStepsId);
 
-  const editingStepId =
-    editingProfileStep && editingProfileStep.profileId === profile.id
-      ? editingProfileStep.id
-      : null;
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch = useAppDispatch();
 
   const addStep = () => dispatch(addProfileStep(profile));
+  const [deleteProfile] = useDeleteProfileMutation();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const openDeleteDialog = () => setDeleteDialogOpen(true);
   const onDeleteProfile = (doDelete: boolean) => {
     if (doDelete) deleteProfile(profile.id);
     setDeleteDialogOpen(false);
   };
 
+  const [startRelay] = useStartRelayMutation();
   const onStartProfile = () => startRelay(profile.id);
 
   return (
@@ -72,10 +68,11 @@ export function ProfileView({ profile, ...other }: ProfileViewProps) {
               aria-label={profile.name + "_" + step.id}
               key={step.id}
               step={step}
+              canEdit
             />
           )
         )}
-        {editingStepId !== null &&
+        {editingStepId &&
           selectProfileStep(profile, editingStepId) === undefined && (
             <ProfileStepForm
               key={editingStepId}
@@ -99,4 +96,4 @@ export function ProfileView({ profile, ...other }: ProfileViewProps) {
       </AccordionActions>
     </Accordion>
   );
-}
+};

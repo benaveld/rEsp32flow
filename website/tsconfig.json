@@ -1,16 +1,11 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": [
-      "ES7",
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
+    "lib": ["ES7", "dom", "dom.iterable", "esnext"],
+    "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": false,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
@@ -24,7 +19,5 @@
       "test-utils": ["./utils/test-utils"]
     }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*"]
 }

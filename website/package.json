@@ -2,6 +2,7 @@
   "name": "resp32flow",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
@@ -25,7 +26,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test:noWatch": "react-scripts test --watchAll=false",
+    "eject": "react-scripts eject",
+    "prepare": "cd .. && husky install"
   },
   "eslintConfig": {
     "extends": [
@@ -57,7 +60,10 @@
     "@types/react-dom": "^18.0.5",
     "@types/react-redux": "^7.1.24",
     "@types/redux-logger": "^3.0.9",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
     "loglevel": "^1.8.0",
-    "msw": "^0.42.1"
+    "msw": "^0.42.1",
+    "prettier": "^2.7.1"
   }
 }

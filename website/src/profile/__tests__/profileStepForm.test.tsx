@@ -1,35 +1,26 @@
 import "@testing-library/jest-dom";
-import {
-  useActDispatch,
-  render,
-  screen,
-} from "../../../utils/test-utils";
+import { useActDispatch, render, screen } from "../../../utils/test-utils";
 import { ProfileStepForm } from "../profileStepForm";
-import { editProfileStep, EditProfileStepParam } from "../state/profileSlice";
+import { ProfileStep } from "../profileTypes";
+import { editProfileStep } from "../state/profileSlice";
 
-const testEdit: EditProfileStepParam = {
-  profile: {
-    name: "test",
-    id: 123,
-    steps: [],
-  },
-  step: {
-    temperature: 20,
-    timer: 16,
-    Kp: 43,
-    Ki: 85,
-    Kd: 92,
-  },
-  stepIndex: 0,
+const testEditStep: ProfileStep = {
+  temperature: 20,
+  timer: 16,
+  Kp: 43,
+  Ki: 85,
+  Kd: 92,
+  profileId: 235,
+  id: 40,
 };
 
 test("view initial values", async () => {
-  await useActDispatch(editProfileStep(testEdit));
+  await useActDispatch(editProfileStep(testEditStep));
   render(<ProfileStepForm />);
-  const { temperature, timer, Kp, Ki, Kd} = testEdit.step;
+  const { temperature, timer, Kp, Ki, Kd } = testEditStep;
 
   const expectToHaveDisplayValue = (label: string | RegExp, expected: number) =>
-    expect(screen.getByLabelText(label, {exact: false})).toHaveDisplayValue(
+    expect(screen.getByLabelText(label, { exact: false })).toHaveDisplayValue(
       expected.toString()
     );
 

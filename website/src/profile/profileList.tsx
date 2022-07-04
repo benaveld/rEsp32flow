@@ -83,7 +83,13 @@ export default function ProfileList(props: PaperProps) {
       </Dialog>
 
       {profiles.map((value) => {
-        return <ProfileView key={value.id} profile={value} />;
+        return (
+          <ProfileView
+            key={value.id}
+            aria-label={`${value.id} ${value.name}`}
+            profile={value}
+          />
+        );
       })}
     </Paper>
   );

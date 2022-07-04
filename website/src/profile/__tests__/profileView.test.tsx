@@ -1,10 +1,7 @@
 import "@testing-library/jest-dom";
 import { setupServer } from "msw/lib/node";
-import {
-  render,
-  screen,
-} from "../../../utils/test-utils";
-import { Profile } from "../profile";
+import { render, screen } from "../../../utils/test-utils";
+import { Profile } from "../profileTypes";
 import { ProfileView } from "../profileView";
 import { testStep } from "./profileStepView.test";
 

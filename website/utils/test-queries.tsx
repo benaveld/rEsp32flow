@@ -31,10 +31,8 @@ const getRegexMissingError = (
   ...args: (string | RegExp | number)[]
 ) => `Unable to find an element with text that matches ${args}`;
 
-export const [
-  queryByRegex,
-  getAllByRegex,
-  getByRegex,
-  findAllByRegex,
-  findByRegex,
-] = buildQueries(queryAllByRegex, getRegexMultipleError, getRegexMissingError);
+export const [queryByRegex, getAllByRegex, getByRegex] = buildQueries(
+  queryAllByRegex,
+  getRegexMultipleError,
+  getRegexMissingError
+);

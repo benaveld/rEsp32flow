@@ -6,21 +6,19 @@ import {
   screen,
   fireEvent,
   within,
-  waitFor,
-  expectParamToBe,
   inputFormValue,
+  waitFor,
 } from "../../../utils/test-utils";
-import { Profile } from "../profile";
+import { Profile, ProfileStep } from "../profileTypes";
 import { profileApiUrl } from "../profileApi";
 import ProfileList from "../profileList";
-import { ProfileStep } from "../profileStep";
-import { testStep } from "./profileStepView.test";
+import { expectProfileStepToBeVisible, testStep } from "./profileStepView.test";
 
 const server = setupServer();
 
 const testProfile: Profile = {
   name: "testing profile",
-  id: 123,
+  id: testStep.profileId,
   steps: [testStep],
 };
 
@@ -35,6 +33,7 @@ afterAll(() => server.close());
 
 test("edit and save step", async () => {
   const newTestProfileStep: ProfileStep = {
+    ...testStep,
     temperature: 345,
     timer: 26,
     Kp: 75,
@@ -45,22 +44,38 @@ test("edit and save step", async () => {
   const stub = jest.fn((req: RestRequest) => {});
 
   server.use(
-    rest.get(profileApiUrl, (req, res, ctx) => {
-      return res(ctx.status(200), ctx.json([testProfile]));
-    }),
+    rest.get(profileApiUrl, (req, res, ctx) =>
+      res.once(ctx.status(200), ctx.json([testProfile]))
+    ),
+
     rest.put(profileApiUrl, (req, res, ctx) => {
       stub(req);
-      return res(ctx.status(200));
+      return res.once(ctx.status(200));
     })
   );
 
   render(<ProfileList />);
-  
-  const htmlProfile = await screen.findByLabelText("profile: " + testProfile.id);
+
+  const htmlProfile = await screen.findByLabelText(
+    `${testProfile.id} ${testProfile.name}`
+  );
   fireEvent.click(within(htmlProfile).getByTestId("ExpandMoreIcon"));
 
-  const step = await within(htmlProfile).findByLabelText(testProfile.name + "_0");
+  const step = await within(htmlProfile).findByLabelText(
+    `${testProfile.name}_${testStep.id}`
+  );
   expect(step).toBeVisible();
+  expectProfileStepToBeVisible(step, testStep);
+
+  server.use(
+    rest.get(profileApiUrl, (req, res, ctx) => {
+      const newTestProfile: Profile = {
+        ...testProfile,
+        steps: [newTestProfileStep],
+      };
+      return res.once(ctx.status(200), ctx.json([newTestProfile]));
+    })
+  );
 
   fireEvent.click(within(step).getByTestId("MoreVertIcon"));
   fireEvent.click(
@@ -69,33 +84,20 @@ test("edit and save step", async () => {
 
   const editStep = await screen.findByRole("form");
 
-  inputFormValue(editStep, /temperature/i, newTestProfileStep.temperature);
-  inputFormValue(editStep, /timer/i, newTestProfileStep.timer);
-  inputFormValue(editStep, /Kp/i, newTestProfileStep.Kp);
-  inputFormValue(editStep, /Ki/i, newTestProfileStep.Ki);
-  inputFormValue(editStep, /Kd/i, newTestProfileStep.Kd);
+  const insertValue = inputFormValue.bind(undefined, editStep);
+  insertValue(/temperature/i, newTestProfileStep.temperature);
+  insertValue(/timer/i, newTestProfileStep.timer);
+  insertValue(/Kp/i, newTestProfileStep.Kp);
+  insertValue(/Ki/i, newTestProfileStep.Ki);
+  insertValue(/Kd/i, newTestProfileStep.Kd);
 
   fireEvent.submit(editStep);
 
-  await waitFor(() => expect(stub).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(stub).toBeCalledTimes(1));
 
-  const req = stub.mock.lastCall[0];
-  expectParamToBe(req.url, "id", testProfile.id);
-  expectParamToBe(req.url, "stepId", 0);
+  const editedStep = await screen.findByLabelText(
+    `${testProfile.name}_${testStep.id}`
+  );
 
-  const apiStep = req.body as ProfileStep;
-  expect(+apiStep.temperature).toBe(newTestProfileStep.temperature);
-  expect(+apiStep.timer).toBe(newTestProfileStep.timer);
-  expect(+apiStep.Kp).toBe(newTestProfileStep.Kp);
-  expect(+apiStep.Ki).toBe(newTestProfileStep.Ki);
-  expect(+apiStep.Kd).toBe(newTestProfileStep.Kd);
-
-  const editedStep = await screen.findByLabelText(testProfile.name + "_0");
-
-  expect(within(editedStep).getByRegex({}, newTestProfileStep.timer, /\s?sec/i)).toBeVisible();
-  expect(within(editedStep).getByRegex({}, newTestProfileStep.temperature, /\s?°C/i)).toBeVisible();
-
-  expect(within(editedStep).getByRegex({}, /Kp\D*/i, newTestProfileStep.Kp)).toBeVisible();
-  expect(within(editedStep).getByRegex({}, /Ki\D*/i, newTestProfileStep.Ki)).toBeVisible();
-  expect(within(editedStep).getByRegex({}, /Kd\D*/i, newTestProfileStep.Kd)).toBeVisible();
+  expectProfileStepToBeVisible(editedStep, newTestProfileStep);
 });

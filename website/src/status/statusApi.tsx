@@ -22,8 +22,8 @@ export type StatusGetResponse = {
 
 const statusJsonUrl = "status.json";
 const temperatureJsonUrl = "temperature.json";
-export const statusApiUrl = `${baseApiUrl}/${statusJsonUrl}`;
-export const temperatureApiUrl = `${baseApiUrl}/${temperatureJsonUrl}`;
+export const statusApiUrl = `http://${baseApiUrl}/${statusJsonUrl}`;
+export const temperatureApiUrl = `http://${baseApiUrl}/${temperatureJsonUrl}`;
 
 const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
   selectId: (slice) => slice.uptime,
@@ -33,7 +33,10 @@ const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
 export const historySelector = historyAdapter.getSelectors();
 
 export const statusApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: `http://${baseApiUrl}`, mode: requestMode }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: `http://${baseApiUrl}`,
+    mode: requestMode,
+  }),
   reducerPath: "status",
   tagTypes: ["history"],
   endpoints: (build) => ({

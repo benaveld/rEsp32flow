@@ -10,7 +10,7 @@ import { baseApiUrl, requestMode } from "../config";
 import { Profile, ProfileStep } from "./profileTypes";
 
 const profileUrl = "profiles.json";
-export const profileApiUrl = `${baseApiUrl}/${profileUrl}`;
+export const profileApiUrl = `http://${baseApiUrl}/${profileUrl}`;
 
 const profilesAdapter = createEntityAdapter<Profile>({
   selectId: ({ id }) => id,

@@ -34,41 +34,44 @@ function createAction(props: createActionProps) {
 
 type ProfileStepViewProps = {
   step: ProfileStep;
+  canEdit?: boolean;
 } & CardProps;
 
-export function ProfileStepView(props: ProfileStepViewProps) {
+export function ProfileStepView({
+  step,
+  canEdit,
+  ...other
+}: ProfileStepViewProps) {
   const [deleteProfileStep] = useDeleteProfileStepMutation();
   const dispatch = useAppDispatch();
-  const { step, ...other } = props;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const handleClose = () => setAnchorEl(null);
 
-  const actions = [
-    createAction({
-      key: "edit",
-      text: "Edit step",
-      icon: <Edit fontSize="small" />,
-      onClick: () => {
-        handleClose();
-        dispatch(editProfileStep(step));
-      },
-    }),
-
-    createAction({
-      key: "delete",
-      text: "Delete",
-      icon: <Delete fontSize="small" />,
-      onClick: () => {
-        handleClose();
-        deleteProfileStep({profileId: step.profileId, stepId: step.id});
-      },
-    }),
-  ];
+  const actions = canEdit
+    ? [
+        createAction({
+          key: "edit",
+          text: "Edit step",
+          icon: <Edit fontSize="small" />,
+          onClick: () => {
+            handleClose();
+            dispatch(editProfileStep(step));
+          },
+        }),
+        createAction({
+          key: "delete",
+          text: "Delete",
+          icon: <Delete fontSize="small" />,
+          onClick: () => {
+            handleClose();
+            deleteProfileStep({ profileId: step.profileId, stepId: step.id });
+          },
+        }),
+      ]
+    : [];
 
   return (
     <Card {...other}>

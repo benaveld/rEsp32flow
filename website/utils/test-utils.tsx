@@ -74,3 +74,4 @@ export {
   customScreen as screen,
   customWithin as within,
 };
+export type Screen = typeof customScreen;

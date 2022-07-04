@@ -1,6 +1,7 @@
 .pio
 /data
 .vscode
+!.vscode/settings.json
 
 lib/webserver/credential.h
 
@@ -27,3 +28,5 @@ lib/webserver/credential.h
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+core
