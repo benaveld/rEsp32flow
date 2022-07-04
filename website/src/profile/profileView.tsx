@@ -43,7 +43,7 @@ export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
   const onStartProfile = () => startRelay(profile.id);
 
   return (
-    <Accordion aria-label={"profile: " + profile.id} {...other}>
+    <Accordion aria-label={`${profile.id} ${profile.name}`} {...other}>
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Typography variant="h6">{profile.name}</Typography>
         <ConfirmationDialog

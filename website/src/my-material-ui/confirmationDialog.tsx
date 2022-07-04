@@ -5,23 +5,25 @@ import Dialog, { DialogProps } from "@mui/material/Dialog";
 import { DialogContent } from "@mui/material";
 
 export type ConfirmationDialogProps = {
-  title: string;
-  confirmationText?: string;
   cancelText?: string;
+  confirmationText?: string;
   onClose: (value: boolean) => void;
+  title: string;
 } & Omit<DialogProps, "onClose">;
 
-export default function ConfirmationDialog(props: ConfirmationDialogProps) {
-  const { onClose, title, confirmationText, cancelText, open, ...other } =
-    props;
-
+export default function ConfirmationDialog({
+  cancelText,
+  confirmationText,
+  onClose,
+  title,
+  ...other
+}: ConfirmationDialogProps) {
   const handleCancel = () => onClose(false);
   const handleOk = () => onClose(true);
 
   return (
     <Dialog
       maxWidth="xs"
-      open={open}
       onClose={handleCancel}
       {...other}
       sx={{
