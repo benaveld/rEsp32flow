@@ -13,14 +13,15 @@ import { SyntheticEvent, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { usePutProfileStepMutation } from "./profileApi";
 import { ProfileStep } from "./profileTypes";
-import { stopEditingProfileStep } from "./state/profileSlice";
+import {
+  selectEditingProfileStep,
+  stopEditingProfileStep,
+} from "./state/profileSlice";
 
 type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export const ProfileStepForm = (props: ProfileStepFormProps) => {
-  const editingProfileStep = useAppSelector(
-    (appState) => appState.profileState.editingProfileStep
-  );
+  const editingProfileStep = useAppSelector(selectEditingProfileStep);
   if (editingProfileStep === undefined)
     throw new Error(
       "Can't render ProfileStepForm if editingProfileStep is undefined."
@@ -33,17 +34,12 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const handleChange =
     (prop: keyof ProfileStep) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setStep({ ...step, [prop]: event.target.value });
+      setStep((oldStep) => ({ ...oldStep, [prop]: event.target.value }));
     };
-
-  function isValid() {
-    //TODO assert that Kp and Ki are bigger then 0.
-    return step.timer >= 0;
-  }
 
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
-    if (!isValid()) return;
+    if (!isValid(step)) return;
     putProfileStep({ step });
     dispatch(stopEditingProfileStep());
   };
@@ -128,3 +124,6 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
     </Card>
   );
 };
+
+const isValid = (step: ProfileStep) =>
+  step.timer >= 0 && step.Kp > 0 && step.Ki > 0 && step.Kd >= 0;

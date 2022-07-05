@@ -23,20 +23,24 @@ const logger = createLogger({
 
 export const store = configureStore({
   reducer: {
-    profileState: profileSlice.reducer,
+    [profileSlice.name]: profileSlice.reducer,
     [statusApi.reducerPath]: statusApi.reducer,
     [ProfileApi.reducerPath]: ProfileApi.reducer,
     [RelayApi.reducerPath]: RelayApi.reducer,
   },
 
   preloadedState: {
-    profileState: profileSlice.getInitialState(),
+    [profileSlice.name]: profileSlice.getInitialState(),
   },
 
   devTools: process.env.NODE_ENV !== "production",
 
   middleware: (getDefaultMiddleware) => {
-    const middleware = getDefaultMiddleware().concat(statusApi.middleware, ProfileApi.middleware, RelayApi.middleware);
+    const middleware = getDefaultMiddleware().concat(
+      statusApi.middleware,
+      ProfileApi.middleware,
+      RelayApi.middleware
+    );
 
     if (process.env.NODE_ENV === "development")
       return middleware.concat(logger);

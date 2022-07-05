@@ -2,15 +2,15 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AppState } from "../../state";
 import { initialProfileStep, Profile, ProfileStep } from "../profileTypes";
 
-interface ProfileState {
+interface EditProfileState {
   editingProfileStep?: ProfileStep;
 }
 
-const initialState: ProfileState = {};
+const initialState: EditProfileState = {};
 
 export const profileSlice = createSlice({
-  name: "profile",
-  initialState: initialState,
+  name: "editProfile",
+  initialState,
   reducers: {
     addProfileStep(state, action: PayloadAction<Profile>) {
       const profile = action.payload;
@@ -36,7 +36,9 @@ export const profileSlice = createSlice({
   },
 });
 
+export const selectEditingProfileStep = (state: AppState) =>
+  state[profileSlice.name].editingProfileStep;
 export const selectEditingProfileStepsId = (state: AppState) =>
-  state.profileState.editingProfileStep?.id;
+  selectEditingProfileStep(state)?.id;
 export const { addProfileStep, editProfileStep, stopEditingProfileStep } =
   profileSlice.actions;
