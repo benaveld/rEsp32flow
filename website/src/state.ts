@@ -1,10 +1,8 @@
 import { createLogger } from "redux-logger";
 import { configureStore, isRejected } from "@reduxjs/toolkit";
 import { profileSlice } from "./profile/state/profileSlice";
-import { statusApi } from "./status/statusApi";
 import { setupListeners } from "@reduxjs/toolkit/dist/query";
-import { ProfileApi } from "./profile/profileApi";
-import { RelayApi } from "./relay/relayApi";
+import { splitAppApi } from "./splitAppApi";
 
 const logger = createLogger({
   // Change this to log a redux action, true -> log
@@ -24,9 +22,7 @@ const logger = createLogger({
 export const store = configureStore({
   reducer: {
     [profileSlice.name]: profileSlice.reducer,
-    [statusApi.reducerPath]: statusApi.reducer,
-    [ProfileApi.reducerPath]: ProfileApi.reducer,
-    [RelayApi.reducerPath]: RelayApi.reducer,
+    [splitAppApi.reducerPath]: splitAppApi.reducer,
   },
 
   preloadedState: {
@@ -36,11 +32,7 @@ export const store = configureStore({
   devTools: process.env.NODE_ENV !== "production",
 
   middleware: (getDefaultMiddleware) => {
-    const middleware = getDefaultMiddleware().concat(
-      statusApi.middleware,
-      ProfileApi.middleware,
-      RelayApi.middleware
-    );
+    const middleware = getDefaultMiddleware().concat(splitAppApi.middleware);
 
     if (process.env.NODE_ENV === "development")
       return middleware.concat(logger);

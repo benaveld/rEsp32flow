@@ -7,15 +7,18 @@ import {
   registerables,
 } from "chart.js";
 import { useTheme } from "@mui/material";
-import { historySelector, useGetTemperatureHistoryQuery } from "./statusApi";
+import {
+  selectEntireHistory,
+  useGetTemperatureHistoryQuery,
+} from "./statusApi";
 
 ChartJS.register(...registerables);
 
 const TemperatureChart = () => {
-  const { data: fetchedData } = useGetTemperatureHistoryQuery();
+  const { history } = useGetTemperatureHistoryQuery(undefined, {
+    selectFromResult: ({ data }) => ({ history: selectEntireHistory(data) }),
+  });
   const { palette } = useTheme();
-
-  const history = fetchedData ? historySelector.selectAll(fetchedData) : [];
 
   const latestUptime =
     history.length > 0 ? history[history.length - 1].uptime : 0;

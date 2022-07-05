@@ -9,14 +9,14 @@ interface EditProfileState {
 const initialState: EditProfileState = {};
 
 export const profileSlice = createSlice({
-  name: "editProfile",
+  name: "profile",
   initialState,
   reducers: {
     addProfileStep(state, action: PayloadAction<Profile>) {
       const profile = action.payload;
       let id = 0;
-      profile.steps.forEach((_, key) => {
-        if (key > id) id = key;
+      profile.steps.forEach((step) => {
+        if (step.id >= id) id = step.id + 1;
       });
 
       state.editingProfileStep = {

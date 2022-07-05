@@ -1,16 +1,26 @@
 import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
 import { MaybeDrafted } from "@reduxjs/toolkit/dist/query/core/buildThunks";
 import { MutationLifecycleApi } from "@reduxjs/toolkit/dist/query/endpointDefinitions";
-import {
-  BaseQueryFn,
-  createApi,
-  fetchBaseQuery,
-} from "@reduxjs/toolkit/dist/query/react";
-import { baseApiUrl, requestMode } from "../config";
+import { BaseQueryFn } from "@reduxjs/toolkit/dist/query/react";
+import { baseApiUrl } from "../config";
+import { getErrorMessage } from "../errorUtils";
+import { splitAppApi } from "../splitAppApi";
 import { Profile, ProfileStep } from "./profileTypes";
 
 const profileUrl = "profiles.json";
-export const profileApiUrl = `http://${baseApiUrl}/${profileUrl}`;
+export const profileApiUrl = `${baseApiUrl}/${profileUrl}`;
+
+const profileUrlBuilder = (
+  profileId?: Profile["id"],
+  stepId?: ProfileStep["id"]
+) => {
+  let result = profileUrl;
+  if (profileId === undefined) return result;
+  result += `?id=${profileId}`;
+  if (stepId === undefined) return result;
+
+  return `${result}&stepId=${stepId}`;
+};
 
 const profilesAdapter = createEntityAdapter<Profile>({
   selectId: ({ id }) => id,
@@ -18,37 +28,36 @@ const profilesAdapter = createEntityAdapter<Profile>({
 });
 const initialState = profilesAdapter.getInitialState();
 
-export const ProfileApi = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: `http://${baseApiUrl}`,
-    mode: requestMode,
-    headers: { "Content-Type": "application/json" },
-  }),
-  reducerPath: "profileApi",
+const profileApi = splitAppApi.injectEndpoints({
   endpoints: (build) => ({
     getProfiles: build.query<typeof initialState, void>({
-      query: () => profileUrl,
+      query: () => profileUrlBuilder(),
       transformResponse(response: Profile[]) {
         return profilesAdapter.setAll(
           initialState,
           response.map((v) => ("steps" in v ? v : { ...v, steps: [] }))
         );
       },
+      providesTags: ["profiles"],
     }),
 
-    putProfile: build.mutation<void, Profile>({
-      query: (profile) => ({
-        url: `${profileUrl}?id=${profile.id}`,
+    putProfile: build.mutation<void, { profile: Profile }>({
+      query: ({ profile }) => ({
+        url: profileUrlBuilder(profile.id),
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: profile,
       }),
-      onQueryStarted: optimisticUpdateCache<Profile>(profilesAdapter.setOne),
+      onQueryStarted: optimisticUpdateCache((draft, { profile }) =>
+        profilesAdapter.setOne(draft, profile)
+      ),
     }),
 
     putProfileStep: build.mutation<void, { step: ProfileStep }>({
       query: ({ step }) => ({
-        url: `${profileUrl}?id=${step.profileId}&stepId=${step.id}`,
+        url: profileUrlBuilder(step.profileId, step.id),
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: step,
       }),
       onQueryStarted: optimisticUpdateCache((draft, { step }) => {
@@ -70,7 +79,7 @@ export const ProfileApi = createApi({
 
     deleteProfile: build.mutation<void, Profile["id"]>({
       query: (id) => ({
-        url: `${profileUrl}?id=${id}`,
+        url: profileUrlBuilder(id),
         method: "DELETE",
       }),
       onQueryStarted: optimisticUpdateCache<Profile["id"]>(
@@ -83,7 +92,7 @@ export const ProfileApi = createApi({
       { profileId: ProfileStep["profileId"]; stepId: ProfileStep["id"] }
     >({
       query: ({ profileId, stepId }) => ({
-        url: `${profileUrl}?id=${profileId}&stepId=${stepId}`,
+        url: profileUrlBuilder(profileId, stepId),
         method: "DELETE",
       }),
       onQueryStarted: optimisticUpdateCache((draft, { profileId, stepId }) => {
@@ -91,15 +100,9 @@ export const ProfileApi = createApi({
         if (!steps)
           throw new Error(`profile with the id ${profileId} dose not exist!`);
 
-        if (steps.length <= stepId || stepId < 0)
-          throw new Error(
-            `Step index ${stepId} is out of bounds for profile ${profileId}.`
-          );
-
-        const updatedSteps = steps.filter((v) => v.id !== stepId);
         draft = profilesAdapter.updateOne(draft, {
           id: profileId,
-          changes: { steps: updatedSteps },
+          changes: { steps: steps.filter((v) => v.id !== stepId) },
         });
       }),
     }),
@@ -112,11 +115,11 @@ export const {
   usePutProfileStepMutation,
   useDeleteProfileMutation,
   useDeleteProfileStepMutation,
-} = ProfileApi;
+} = profileApi;
 
 export const { selectAll: selectAllProfiles, selectById: selectProfileById } =
-  profilesAdapter.getSelectors<EntityState<Profile> | undefined>(
-    (state) => state ?? initialState
+  profilesAdapter.getSelectors(
+    (state?: EntityState<Profile>) => state ?? initialState
   );
 
 function optimisticUpdateCache<QueryArg>(
@@ -136,11 +139,16 @@ function optimisticUpdateCache<QueryArg>(
       queryFulfilled,
     }: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
   ) => {
-    const updatedProfile = dispatch(
-      ProfileApi.util.updateQueryData("getProfiles", undefined, (draft) =>
-        func(draft, arg)
-      )
-    );
-    queryFulfilled.catch(updatedProfile.undo);
+    try {
+      const updatedProfile = dispatch(
+        profileApi.util.updateQueryData("getProfiles", undefined, (draft) =>
+          func(draft, arg)
+        )
+      );
+      queryFulfilled.catch(updatedProfile.undo);
+    } catch (e) {
+      console.error(getErrorMessage(e));
+      profileApi.util.invalidateTags(["profiles"]);
+    }
   };
 }

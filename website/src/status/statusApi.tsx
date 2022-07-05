@@ -1,6 +1,6 @@
 import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/dist/query/react";
-import { baseApiUrl, requestMode } from "../config";
+import { baseApiUrl } from "../config";
+import { splitAppApi } from "../splitAppApi";
 
 export const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
@@ -22,27 +22,28 @@ export type StatusGetResponse = {
 
 const statusJsonUrl = "status.json";
 const temperatureJsonUrl = "temperature.json";
-export const statusApiUrl = `http://${baseApiUrl}/${statusJsonUrl}`;
-export const temperatureApiUrl = `http://${baseApiUrl}/${temperatureJsonUrl}`;
+export const statusApiUrl = `${baseApiUrl}/${statusJsonUrl}`;
+export const temperatureApiUrl = `${baseApiUrl}/${temperatureJsonUrl}`;
 
 const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
   selectId: (slice) => slice.uptime,
   sortComparer: (a, b) => a.uptime - b.uptime,
 });
+const initialHistoryState = historyAdapter.getInitialState();
 
 export const historySelector = historyAdapter.getSelectors();
+export const { selectAll: selectEntireHistory } = historyAdapter.getSelectors(
+  (state?: EntityState<TemperatureHistorySlice>) => state ?? initialHistoryState
+);
 
-export const statusApi = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: `http://${baseApiUrl}`,
-    mode: requestMode,
-  }),
-  reducerPath: "status",
-  tagTypes: ["history"],
+const statusApi = splitAppApi.injectEndpoints({
   endpoints: (build) => ({
     getStatusUpdate: build.query<StatusGetResponse, void>({
       query: () => statusJsonUrl,
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const invalidateHistory = () =>
+          dispatch(statusApi.util.invalidateTags(["history"]));
+
         try {
           const { data: statusUpdate } = await queryFulfilled;
           dispatch(
@@ -51,8 +52,10 @@ export const statusApi = createApi({
               undefined,
               (draft) => {
                 const lastUptime = draft.ids.at(-1);
-                if (lastUptime && lastUptime > statusUpdate.uptime)
-                  dispatch(statusApi.util.invalidateTags(["history"]));
+                if (lastUptime && lastUptime > statusUpdate.uptime) {
+                  invalidateHistory();
+                  return;
+                }
 
                 draft = historyAdapter.setOne(draft, statusUpdate);
                 const idsToRemove = draft.ids.filter(
@@ -63,7 +66,7 @@ export const statusApi = createApi({
             )
           );
         } catch {
-          dispatch(statusApi.util.invalidateTags(["history"]));
+          invalidateHistory();
         }
       },
     }),
@@ -75,10 +78,7 @@ export const statusApi = createApi({
       query: () => `${temperatureJsonUrl}?timeBack=${keepHistoryTime}`,
       providesTags: ["history"],
       transformResponse(response: HistoryGetResponse) {
-        return historyAdapter.addMany(
-          historyAdapter.getInitialState(),
-          response.history
-        );
+        return historyAdapter.addMany(initialHistoryState, response.history);
       },
     }),
   }),

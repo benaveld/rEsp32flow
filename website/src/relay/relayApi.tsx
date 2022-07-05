@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/dist/query/react";
-import { baseApiUrl, baseUrl, requestMode } from "../config";
+import { baseApiUrl, baseUrl } from "../config";
+import { splitAppApi } from "../splitAppApi";
 import { Profile } from "../profile/profileTypes";
 
 const relayUrl = "relay";
@@ -16,13 +16,7 @@ export interface RelayApiGet {
   };
 }
 
-export const RelayApi = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: `http://${baseApiUrl}`,
-    mode: requestMode,
-    headers: { "Content-Type": "application/json" },
-  }),
-  reducerPath: "relay",
+const relayApi = splitAppApi.injectEndpoints({
   endpoints: (build) => ({
     getRelayStatus: build.query<RelayApiGet, void>({
       query: () => relayUrl,
@@ -65,4 +59,4 @@ export const {
   useGetRelayStatusQuery,
   useEStopRelayMutation,
   useStartRelayMutation,
-} = RelayApi;
+} = relayApi;

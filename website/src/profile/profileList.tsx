@@ -22,15 +22,19 @@ export default function ProfileList(props: PaperProps) {
   const [putProfile] = usePutProfileMutation();
   const [open, setOpen] = useState(false);
 
-  const { data: profileQueryData, error } = useGetProfilesQuery();
-  const profiles = selectAllProfiles(profileQueryData);
+  const { profiles, error } = useGetProfilesQuery(undefined, {
+    selectFromResult: ({ data, error }) => ({
+      error,
+      profiles: selectAllProfiles(data),
+    }),
+  });
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const handleSubmit: ProfileNameDialogProps["onSubmit"] = (_event, name) => {
     handleClose();
-    putProfile({ id: getUniqId(profiles), name: name, steps: [] });
+    putProfile({ profile: { id: getUniqId(profiles), name: name, steps: [] } });
   };
 
   return (

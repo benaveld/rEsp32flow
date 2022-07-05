@@ -72,7 +72,7 @@ export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
             />
           )
         )}
-        {editingStepId &&
+        {editingStepId !== undefined &&
           selectProfileStep(profile, editingStepId) === undefined && (
             <ProfileStepForm
               key={editingStepId}
@@ -82,15 +82,15 @@ export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
       </AccordionDetails>
 
       <AccordionActions>
-        <IconButton aria-label="start profile" onClick={onStartProfile}>
+        <IconButton onClick={onStartProfile}>
           <Start />
         </IconButton>
 
-        <IconButton aria-label="add profile step" onClick={addStep}>
+        <IconButton onClick={addStep}>
           <Add />
         </IconButton>
 
-        <IconButton aria-label="delete profile" onClick={openDeleteDialog}>
+        <IconButton onClick={openDeleteDialog}>
           <Delete />
         </IconButton>
       </AccordionActions>
