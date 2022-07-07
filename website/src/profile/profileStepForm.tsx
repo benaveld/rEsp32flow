@@ -32,7 +32,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const [putProfileStep] = usePutProfileStepMutation();
 
   const handleChange =
-    (prop: keyof ProfileStep) =>
+    (prop: keyof typeof step) =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setStep((oldStep) => ({ ...oldStep, [prop]: event.target.value }));
     };
@@ -89,6 +89,8 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
               }}
               value={step.timer}
               onChange={handleChange("timer")}
+              error={step.timer < 0}
+              helperText="Can't be negative."
             />
           </Grid>
           <Grid item xs={2}>
@@ -97,6 +99,8 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
               label="Kp"
               value={step.Kp}
               onChange={handleChange("Kp")}
+              error={step.Kp <= 0}
+              helperText="Must be greater the 0."
             />
           </Grid>
           <Grid item xs={2}>
@@ -105,6 +109,8 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
               label="Ki"
               value={step.Ki}
               onChange={handleChange("Ki")}
+              error={step.Ki <= 0}
+              helperText="Must be greater the 0."
             />
           </Grid>
           <Grid item xs={2}>
@@ -113,6 +119,8 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
               label="Kd"
               value={step.Kd}
               onChange={handleChange("Kd")}
+              error={step.Kd < 0}
+              helperText="Can't be negative."
             />
           </Grid>
         </Grid>

@@ -15,7 +15,7 @@ namespace resp32flow
   class RelayController : public JsonI
   {
   private:
-    using stepItr_t = decltype(Profile::steps)::const_iterator;
+    using stepItr_t = Profile::stepMap_t::const_iterator;
 
     constexpr static UBaseType_t TASK_PRIORITY = 10U;
     constexpr static auto STACK_DEPTH = 4096U;
@@ -37,6 +37,9 @@ namespace resp32flow
 
     ErrorMessage setupProfileStep();
     void stop();
+
+    stepItr_t stepBegin() const;
+    stepItr_t stepEnd() const;
 
   public:
     RelayController(decltype(m_relayPin) a_relayPin, decltype(m_temperatureSensor) a_temperatureSensor);

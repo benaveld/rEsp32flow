@@ -11,17 +11,16 @@ import { useState } from "react";
 import { getErrorMessage } from "../errorUtils";
 import {
   selectAllProfiles,
+  useCreateProfileMutation,
   useGetProfilesQuery,
-  usePutProfileMutation,
 } from "./profileApi";
 import ProfileNameDialog, { ProfileNameDialogProps } from "./profileNameDialog";
-import { getUniqId } from "./profileTypes";
 import { ProfileView } from "./profileView";
 
 export default function ProfileList(props: PaperProps) {
-  const [putProfile] = usePutProfileMutation();
   const [open, setOpen] = useState(false);
 
+  const [createProfile] = useCreateProfileMutation();
   const { profiles, error } = useGetProfilesQuery(undefined, {
     selectFromResult: ({ data, error }) => ({
       error,
@@ -34,7 +33,7 @@ export default function ProfileList(props: PaperProps) {
 
   const handleSubmit: ProfileNameDialogProps["onSubmit"] = (_event, name) => {
     handleClose();
-    putProfile({ profile: { id: getUniqId(profiles), name: name, steps: [] } });
+    createProfile({ name });
   };
 
   return (

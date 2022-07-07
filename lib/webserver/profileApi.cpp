@@ -4,129 +4,114 @@
 #include <climits>
 #include <string>
 #include <profile.h>
+#include <type_traits>
+#include <apiUtil.h>
 
-struct IdProp
-{
-  bool valid;
-  unsigned long id;
-};
+using util::api::getParameter;
+using idParam_t = util::api::getParameterReturn_t<resp32flow::Profile::id_t>;
 
-static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
+constexpr auto ID_PARAM = "id";
+constexpr auto STEP_ID_PARAM = "stepId";
+
+static void handleProfileGet(resp32flow::ProfileHandler *a_profileHandler, idParam_t a_id, idParam_t a_stepId, AsyncWebServerRequest *a_request)
 {
-  if (!a_id.valid)
+  try
   {
-    auto response = new AsyncJsonResponse(true, a_profileHandler->getJsonSize());
-    a_profileHandler->toJson(response->getRoot());
+    if (!a_id.first)
+    {
+      auto response = new AsyncJsonResponse(true, a_profileHandler->getJsonSize());
+      a_profileHandler->toJson(response->getRoot());
+      response->setLength();
+      return a_request->send(response);
+    }
+
+    auto &&profile = a_profileHandler->at(a_id.second);
+    auto response = new AsyncJsonResponse(false, a_profileHandler->getJsonSize());
+
+    if (a_stepId.first)
+    {
+      profile.getStep(a_stepId.second).toJSON(response->getRoot());
+    }
+    else
+    {
+      profile.toJSON(response->getRoot());
+    }
+
     response->setLength();
-    return a_request->send(response);
+    a_request->send(response);
   }
-
-  auto &&profileItr = a_profileHandler->find(a_id.id);
-  auto response = new AsyncJsonResponse(false, a_profileHandler->getJsonSize());
-  if (profileItr == a_profileHandler->end())
-    return a_request->send(404, "text/plain", "Can't find requested profile.");
-
-  const auto &profile = profileItr->second;
-  if (a_stepId.valid)
+  catch (std::exception &e)
   {
-    if (profile.steps.size() <= a_stepId.id)
-      return a_request->send(404, "text/plain", "Can't find requested profile step.");
-
-    profile.steps.at(a_stepId.id).toJSON(response->getRoot());
+    log_e("%s", e.what());
+    a_request->send(400, "text/plain", e.what());
   }
-  else
-  {
-    profile.toJSON(response->getRoot());
-  }
-
-  response->setLength();
-  a_request->send(response);
 }
 
-static void handleDeleteProfile(resp32flow::ProfileHandler *a_profileHandler, IdProp a_id, IdProp a_stepId, AsyncWebServerRequest *a_request)
+static void handleDeleteProfile(resp32flow::ProfileHandler *a_profileHandler, idParam_t a_id, idParam_t a_stepId, AsyncWebServerRequest *a_request)
 {
-  if (!a_id.valid)
+  if (!a_id.first)
     return a_request->send(400, "text/plain", "Not allowed to delta all profiles at once");
-
-  auto &&profileItr = a_profileHandler->find(a_id.id);
-  if (profileItr == a_profileHandler->end())
-    return a_request->send(400, "text/plain", "Can't find profile.");
-
-  if (a_stepId.valid)
+  try
   {
-    profileItr->second.steps.erase(a_stepId.id);
-    return a_request->send(200);
-  }
 
-  a_profileHandler->erase(profileItr);
-  return a_request->send(200);
+    if (a_stepId.first)
+    {
+      a_profileHandler->eraseStep(a_id.second, a_stepId.second);
+    }
+    else
+    {
+      a_profileHandler->erase(a_id.second);
+    }
+    a_request->send(200);
+  }
+  catch (std::exception &e)
+  {
+    log_e("%s", e.what());
+    a_request->send(400, "text/plain", e.what());
+  }
 }
 
 // TODO validate input
 void resp32flow::webServer::api::handleJsonProfile(resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request, JsonVariant &a_json)
 {
-  if (a_request->method() != HTTP_PUT)
+  try
   {
-    return a_request->send(400, "text/plain", "Web API Error: 4832");
-  }
-
-  IdProp id{false, 0};
-  IdProp stepId{false, 0};
-  if (a_request->hasParam("id"))
-  {
-    id.valid = true;
-    id.id = std::strtoul(a_request->getParam("id")->value().c_str(), nullptr, 10);
-    if (a_request->hasParam("stepId"))
+    if (a_request->method() & (HTTP_PUT | HTTP_POST) == 0)
     {
-      stepId.valid = true;
-      stepId.id = std::strtoul(a_request->getParam("stepId")->value().c_str(), nullptr, 10);
+      return a_request->send(405);
     }
-  }
-  else
-  {
-    return a_request->send(400, "text/plain", "No profile specified.");
-  }
 
-  int httpResponseCode = 200;
-  auto profileItr = a_profileHandler->find(static_cast<int>(id.id));
-  if (profileItr == a_profileHandler->end())
-  {
-    log_i("create new profile");
-    profileItr = a_profileHandler->emplace(static_cast<int>(id.id), id.id).first;
-    httpResponseCode = 201;
-  }
-  auto &profile = profileItr->second;
+    auto id = getParameter<idParam_t::second_type>(a_request, ID_PARAM);
+    if (!id.first)
+    {
+      if (!a_json.containsKey("name"))
+        return a_request->send(400);
 
-  if (stepId.valid)
-  {
-    ProfileStep step(a_json);
-    auto result = profile.steps.insert(std::pair<decltype(step.id), decltype(step)>(step.id, step));
-    if (result.second)
-      httpResponseCode = 201;
-  }
-  else
-  {
-    profile = resp32flow::Profile(a_json);
-  }
+      auto isAdded = a_profileHandler->createProfile(a_json[Profile::NAME_JSON]);
+      if (isAdded)
+        return a_request->send(201);
+      return a_request->send(406, "text/plain", "Profile already exist.");
+    }
 
-  a_request->send(httpResponseCode);
-  a_profileHandler->storeProfiles();
+    auto stepId = getParameter<idParam_t::second_type>(a_request, STEP_ID_PARAM);
+    if (stepId.first)
+      a_profileHandler->setProfileStep(a_json);
+    else
+      a_profileHandler->setProfile(a_json);
+
+    a_request->send(200);
+  }
+  catch (std::exception &e)
+  {
+    log_e("%s", e.what());
+    a_request->send(400, "text/plain", e.what());
+  }
 }
 
 void resp32flow::webServer::api::handleProfile(resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request)
 {
-  IdProp id{false, 0};
-  IdProp stepId{false, 0};
-  if (a_request->hasParam("id"))
-  {
-    id.valid = true;
-    id.id = std::strtoul(a_request->getParam("id")->value().c_str(), nullptr, 10);
-    if (a_request->hasParam("stepId"))
-    {
-      stepId.valid = true;
-      stepId.id = std::strtoul(a_request->getParam("stepId")->value().c_str(), nullptr, 10);
-    }
-  }
+  auto &&id = getParameter<idParam_t::second_type>(a_request, ID_PARAM);
+  auto &&stepId = getParameter<idParam_t::second_type>(a_request, STEP_ID_PARAM);
 
   switch (a_request->method())
   {

@@ -41,6 +41,16 @@ const profileApi = splitAppApi.injectEndpoints({
       providesTags: ["profiles"],
     }),
 
+    createProfile: build.mutation<void, { name: Profile["name"] }>({
+      query: (arg) => ({
+        url: profileUrlBuilder(),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: arg,
+      }),
+      invalidatesTags: ["profiles"],
+    }),
+
     putProfile: build.mutation<void, { profile: Profile }>({
       query: ({ profile }) => ({
         url: profileUrlBuilder(profile.id),
@@ -61,13 +71,13 @@ const profileApi = splitAppApi.injectEndpoints({
         body: step,
       }),
       onQueryStarted: optimisticUpdateCache((draft, { step }) => {
-        const { profileId, id } = step;
+        const { profileId } = step;
         const steps = selectProfileById(draft, profileId)?.steps;
         if (!steps)
           throw new Error(`profile with the id ${profileId} dose not exist!`);
 
-        const editedSteps = steps.find((v) => v.id === id)
-          ? steps.map((v) => (v.id === id ? step : v)) // Update step
+        const editedSteps = steps.find((v) => v.id === step.id)
+          ? steps.map((v) => (v.id === step.id ? step : v)) // Update step
           : steps.concat(step).sort((a, b) => a.id - b.id); // Add step
 
         draft = profilesAdapter.updateOne(draft, {
@@ -115,6 +125,7 @@ export const {
   usePutProfileStepMutation,
   useDeleteProfileMutation,
   useDeleteProfileStepMutation,
+  useCreateProfileMutation,
 } = profileApi;
 
 export const { selectAll: selectAllProfiles, selectById: selectProfileById } =

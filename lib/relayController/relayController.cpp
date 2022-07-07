@@ -48,7 +48,7 @@ auto resp32flow::RelayController::start(const Profile &a_profile) -> ErrorMessag
 
   waitRecursiveTake(m_mutex);
   m_selectedProfile = &a_profile;
-  m_currentStepItr = m_selectedProfile->steps.cbegin();
+  m_currentStepItr = stepBegin();
   auto error = setupProfileStep();
   xSemaphoreGiveRecursive(m_mutex);
   if (error.isError)
@@ -104,7 +104,7 @@ void resp32flow::RelayController::tick()
   if (step.targetTemp <= ovenTemp && step.timer <= stepTime)
   {
     m_currentStepItr++;
-    if (m_currentStepItr == m_selectedProfile->steps.cend())
+    if (m_currentStepItr == stepEnd())
     {
       stop();
       xSemaphoreGiveRecursive(m_mutex);
@@ -144,8 +144,8 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
   if (isOn())
   {
     auto info = a_jsonObject.createNestedObject("info");
-    info["profileId"] = m_selectedProfile->id;
-    info["stepId"] = m_currentStepItr->second.id;
+    info[Profile::Step::PROFILE_ID_JSON] = m_selectedProfile->getId();
+    info[Profile::Step::ID_JSON] = m_currentStepItr->second.id;
     info["stepTime"] = getStepTimer();
     info["relayOnTime"] = m_relayOnTime;
     info["updateRate"] = m_sampleRate;
@@ -176,4 +176,17 @@ void resp32flow::RelayController::attachWebSocket(decltype(m_ws) a_ws)
 {
   assert(a_ws != nullptr);
   m_ws = a_ws;
+}
+
+auto resp32flow::RelayController::stepBegin() const -> stepItr_t
+{
+  if(m_selectedProfile == nullptr)
+    throw std::runtime_error("No selected profile.");
+  return m_selectedProfile->cbegin();
+}
+auto resp32flow::RelayController::stepEnd() const -> stepItr_t
+{
+  if(m_selectedProfile == nullptr)
+    throw std::runtime_error("No selected profile.");
+  return m_selectedProfile->cend();
 }

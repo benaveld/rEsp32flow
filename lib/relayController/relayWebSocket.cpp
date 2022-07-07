@@ -6,6 +6,7 @@
 #include <functional>
 
 #include <profileHandler.h>
+#include <apiUtil.h>
 #include "relayController.h"
 
 void resp32flow::RelayWebSocket::onSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
@@ -79,31 +80,34 @@ void resp32flow::RelayWebSocket::handleRequest(AsyncWebServerRequest *a_request)
 
 void resp32flow::RelayWebSocket::handlePost(AsyncWebServerRequest *a_request)
 {
-  if (a_request->hasParam("startId"))
+  using util::api::getParameter;
+  try
   {
-    auto id = std::strtol(a_request->getParam("startId")->value().c_str(), nullptr, 10);
-    auto profileItr = m_profiles.find(id);
-    if (profileItr == m_profiles.end())
+    auto startId = getParameter<Profile::id_t>(a_request, "startId");
+    if (startId.first)
     {
-      String errorMessage = "Can't find profile with id: ";
-      errorMessage.concat(id);
-      return a_request->send(406, "text/plain", errorMessage);
+      auto &&profile = m_profiles.at(startId.second);
+      auto &&error = m_controller.start(profile);
+      if (error.isError)
+      {
+        const auto &message = error.fullMessage();
+        log_e("%s", message.c_str());
+        return a_request->send(406, "text/plain", message);
+      }
     }
-    auto error = m_controller.start(profileItr->second);
-    if (error.isError)
-    {
-      const auto &message = error.fullMessage();
-      log_e("%s", message.c_str());
-      return a_request->send(406, "text/plain", message);
-    }
-  }
 
-  if (a_request->hasParam("eStop"))
+    if (a_request->hasParam("eStop"))
+    {
+      m_controller.eStop();
+    }
+
+    a_request->send(200);
+  }
+  catch (std::exception &e)
   {
-    m_controller.eStop();
+    log_e("%s", e.what());
+    a_request->send(400, "text/plain", e.what());
   }
-
-  a_request->send(200);
 }
 
 void resp32flow::RelayWebSocket::handleGet(AsyncWebServerRequest *a_request) const
