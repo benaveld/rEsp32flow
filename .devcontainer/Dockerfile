@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/base:0-alpine-${VARIANT}
 RUN apk update \
   && apk upgrade \
   && apk -q add --no-cache \
+    clang-extra-tools \
     gcompat \
     npm \
     py3-pip \
