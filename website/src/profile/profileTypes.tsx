@@ -17,4 +17,17 @@ export interface Profile {
 export const selectProfileStep = (
   profile?: Profile,
   stepId?: ProfileStep["id"]
-) => profile?.steps.find((v) => v.id === stepId);
+) =>
+  stepId !== undefined
+    ? profile?.steps.find((v) => v.id === stepId)
+    : undefined;
+
+export const selectNextProfileStep = (
+  profile?: Profile,
+  stepId?: ProfileStep["id"]
+) =>
+  stepId !== undefined
+    ? profile?.steps.reduceRight((prevStep, step) =>
+        step.id > stepId ? step : prevStep
+      )
+    : undefined;

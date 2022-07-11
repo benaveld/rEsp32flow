@@ -80,14 +80,21 @@ const TemperatureChart = () => {
         grid: {
           display: false,
         },
+        ticks: {
+          color: palette.text.primary,
+        },
       },
       y: {
         display: true,
         ticks: {
+          color: palette.text.primary,
           callback: (value) => value + "°C",
         },
         suggestedMin: 0,
         suggestedMax: 200,
+        grid: {
+          color: palette.text.secondary,
+        },
       },
     },
   };

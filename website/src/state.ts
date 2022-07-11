@@ -7,7 +7,12 @@ import { splitAppApi } from "./splitAppApi";
 const logger = createLogger({
   // Change this to log a redux action, true -> log
   predicate: (_, action, logEntry) => {
-    if (isRejected(action)) return true;
+    if (
+      isRejected(action) &&
+      action.error.message !==
+        "Aborted due to condition callback returning false."
+    )
+      return true;
 
     // // Example of logging a specific action
     // if (typeof action.type === "string") {

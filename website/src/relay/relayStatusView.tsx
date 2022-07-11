@@ -1,54 +1,89 @@
-import { Button, Card, CardProps, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Paper,
+  PaperProps,
+  Typography,
+} from "@mui/material";
 import { ProfileStepView } from "../profile/profileStepView";
 import { useEStopRelayMutation, useGetRelayStatusQuery } from "./relayApi";
 import { selectProfileById, useGetProfilesQuery } from "../profile/profileApi";
-import { selectProfileStep } from "../profile/profileTypes";
+import {
+  selectNextProfileStep,
+  selectProfileStep,
+} from "../profile/profileTypes";
 
-const RelayStatusView = (props: CardProps) => {
+export type RelayStatusViewProps = PaperProps;
+
+const NotRunningRelay = (props: RelayStatusViewProps) => (
+  <Paper {...props}>
+    <Typography noWrap>Not running</Typography>;
+  </Paper>
+);
+
+const ProfilesAreLoading = (props: RelayStatusViewProps) => (
+  <Paper {...props}>
+    <Typography>Loading...</Typography>
+  </Paper>
+);
+
+const RelayStatusView = (props: RelayStatusViewProps) => {
   const [stopRelay] = useEStopRelayMutation();
   const { info } = useGetRelayStatusQuery(undefined, {
-    selectFromResult: ({ data }) => ({ info: data?.info }),
-  });
-
-  const { runningProfile } = useGetProfilesQuery(undefined, {
     selectFromResult: ({ data }) => ({
-      runningProfile: info
-        ? selectProfileById(data, info.profileId)
-        : undefined,
+      info: data?.info,
     }),
   });
 
-  const currentStep = selectProfileStep(runningProfile, info?.stepId);
+  const { runningProfile, isLoading: isProfileLoading } = useGetProfilesQuery(
+    undefined,
+    {
+      selectFromResult: ({ data, isLoading }) => ({
+        isLoading,
+        runningProfile:
+          info !== undefined
+            ? selectProfileById(data, info.profileId)
+            : undefined,
+      }),
+    }
+  );
 
-  if (info && runningProfile) {
-    if (currentStep === undefined)
-      throw new Error(
-        "currentStep is undefined even do runningProfile is defined."
-      );
+  if (!info) return <NotRunningRelay {...props} />;
+  if (!runningProfile) {
+    if (isProfileLoading) return <ProfilesAreLoading {...props} />;
+    throw new Error("Running Profile ID not found");
+  }
 
-    return (
-      <Card {...props}>
-        <Typography>Running {runningProfile.name}</Typography>
-        <Typography>
-          Relay on for {(info.relayOnTime / 1000).toFixed(2)}sec
-        </Typography>
-        <Typography>Update every {info.updateRate / 1000}sec</Typography>
-        <Button onClick={() => stopRelay()}>Stop</Button>
-        <Typography>
-          Current step {Math.round(info.stepTime / 1000)}sec
-        </Typography>
-        <ProfileStepView step={currentStep} />
-        {/* {runningProfile.steps.length > info.profileStepId + 1 && (
-          <Box>
-            <Typography>Next step</Typography>
-            <ProfileStepView
-              step={runningProfile.steps[info.profileStepId + 1]}
-            />
-          </Box>
-        )} */}
-      </Card>
-    );
-  } else return <Typography noWrap>Not running</Typography>;
+  const currentStep = selectProfileStep(runningProfile, info.stepId);
+  if (!currentStep) throw new Error("currentStep should not be undefined");
+
+  const nextStep = selectNextProfileStep(runningProfile, info.stepId);
+  const relayOnTime = (info.relayOnTime / 1000).toFixed(2);
+  const updateRate = info.updateRate / 1000;
+  const stepTime = Math.round(info.stepTime / 1000);
+
+  return (
+    <Paper {...props}>
+      <Typography>Running {runningProfile.name}</Typography>
+      <Divider />
+      <Typography>Relay on for {relayOnTime}sec</Typography>
+      <Typography>Update every {updateRate}sec</Typography>
+      <Button onClick={() => stopRelay()}>Stop</Button>
+      <Typography>Current step {stepTime}sec</Typography>
+
+      <Divider />
+      <ProfileStepView step={currentStep} />
+
+      {nextStep !== undefined && (
+        <Box>
+          <Divider />
+          <Typography>Next step</Typography>
+          <ProfileStepView step={nextStep} />
+        </Box>
+      )}
+    </Paper>
+  );
 };
 
 export default RelayStatusView;

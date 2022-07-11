@@ -5,6 +5,7 @@ import {
   AccordionDetails,
   AccordionProps,
   AccordionSummary,
+  Divider,
   IconButton,
   Typography,
 } from "@mui/material";
@@ -57,21 +58,24 @@ export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
       </AccordionSummary>
 
       <AccordionDetails>
-        {profile.steps.map((step) =>
-          step.id === editingStepId ? (
-            <ProfileStepForm
-              key={step.id}
-              aria-label={profile.name + "_" + step.id + "_edit"}
-            />
-          ) : (
-            <ProfileStepView
-              aria-label={profile.name + "_" + step.id}
-              key={step.id}
-              step={step}
-              canEdit
-            />
+        {addDividers(
+          profile.steps.map((step) =>
+            step.id === editingStepId ? (
+              <ProfileStepForm
+                key={step.id}
+                aria-label={profile.name + "_" + step.id + "_edit"}
+              />
+            ) : (
+              <ProfileStepView
+                aria-label={profile.name + "_" + step.id}
+                key={step.id}
+                step={step}
+                canEdit
+              />
+            )
           )
         )}
+
         {editingStepId !== undefined &&
           selectProfileStep(profile, editingStepId) === undefined && (
             <ProfileStepForm
@@ -97,3 +101,8 @@ export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
     </Accordion>
   );
 };
+
+const addDividers = (list: JSX.Element[]) =>
+  list.flatMap((value, index) =>
+    index > 0 ? [<Divider key={`divider ${index}`} />, value] : value
+  );

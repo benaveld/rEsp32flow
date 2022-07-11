@@ -145,7 +145,7 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
   {
     auto info = a_jsonObject.createNestedObject("info");
     info[Profile::Step::PROFILE_ID_JSON] = m_selectedProfile->getId();
-    info[Profile::Step::ID_JSON] = m_currentStepItr->second.id;
+    info["stepId"] = m_currentStepItr->second.id;
     info["stepTime"] = getStepTimer();
     info["relayOnTime"] = m_relayOnTime;
     info["updateRate"] = m_sampleRate;
