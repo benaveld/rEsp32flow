@@ -63,14 +63,14 @@ function App() {
     [mode]
   );
 
-  const ref = createRef<HTMLDivElement>();
-  const appBarDimensions = useRefDimensions(ref);
+  const appBarRef = createRef<HTMLDivElement>();
+  const appBarDimensions = useRefDimensions(appBarRef);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <Box bgcolor="background.default" color="text.primary">
-          <AppAppBar ref={ref} />
+          <AppAppBar ref={appBarRef} />
 
           <Box
             sx={{
@@ -95,8 +95,8 @@ function App() {
               sx={{
                 padding: "1ch",
                 flexGrow: 1,
-                width: "80em",
-                height: "55em",
+                minWidth: "80em",
+                minHeight: "55em",
               }}
             >
               <TemperatureChart />

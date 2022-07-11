@@ -8,7 +8,6 @@ import {
   PaperProps,
 } from "@mui/material";
 import { useState } from "react";
-import { getErrorMessage } from "../errorUtils";
 import {
   selectAllProfiles,
   useCreateProfileMutation,
@@ -21,9 +20,8 @@ export default function ProfileList(props: PaperProps) {
   const [open, setOpen] = useState(false);
 
   const [createProfile] = useCreateProfileMutation();
-  const { profiles, error } = useGetProfilesQuery(undefined, {
-    selectFromResult: ({ data, error }) => ({
-      error,
+  const { profiles } = useGetProfilesQuery(undefined, {
+    selectFromResult: ({ data }) => ({
       profiles: selectAllProfiles(data),
     }),
   });
@@ -49,8 +47,6 @@ export default function ProfileList(props: PaperProps) {
           </IconButton>
         </Tooltip>
       </Box>
-
-      {error && <Typography>{getErrorMessage(error)}</Typography>}
 
       <ProfileNameDialog
         open={open}

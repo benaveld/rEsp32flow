@@ -6,6 +6,7 @@ export const splitAppApi = createApi({
     baseUrl: baseApiUrl,
     mode: requestMode,
   }),
+  refetchOnReconnect: true,
   tagTypes: ["history", "profiles"],
   endpoints: () => ({}),
 });

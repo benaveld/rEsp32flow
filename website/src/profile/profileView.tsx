@@ -47,6 +47,7 @@ export const ProfileView = ({ profile, ...other }: ProfileViewProps) => {
     <Accordion aria-label={`${profile.id} ${profile.name}`} {...other}>
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Typography variant="h6">{profile.name}</Typography>
+        {/*  TODO move ConfirmationDialog to ProfileLists */}
         <ConfirmationDialog
           id="delete-profile-dialog"
           title={"Delete: " + profile.name + "?"}

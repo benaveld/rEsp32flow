@@ -1,62 +1,47 @@
-import { Box, BoxProps, Card, Typography } from "@mui/material";
+import { Alert, Box, BoxProps, Snackbar, Typography } from "@mui/material";
+import { SubscriptionOptions } from "@reduxjs/toolkit/dist/query/core/apiState";
 import { getErrorMessage } from "../errorUtils";
 import { useGetStatusUpdateQuery } from "./statusApi";
+import TemperatureView from "./temperatureView";
 
-const ColoredBox = (props: { color: string } & BoxProps) => {
-  const { color, sx, ...other } = props;
-  return (
-    <Box
-      sx={{
-        backgroundColor: color,
-        width: "0.8em",
-        height: "0.8em",
-        marginTop: "auto",
-        marginBottom: "auto",
-        marginRight: "0.1em",
-        marginLeft: "0.1em",
-        ...sx,
-      }}
-      {...other}
-    />
-  );
-};
-
-export type StatusViewProps = {
-  pollingInterval?: number; //Defaults to 1000ms
-} & BoxProps;
+export type StatusViewProps = BoxProps &
+  Pick<SubscriptionOptions, "pollingInterval">;
 
 export default function StatusView({
-  pollingInterval,
+  pollingInterval = 1000,
   ...other
 }: StatusViewProps) {
   const { data: status, error } = useGetStatusUpdateQuery(undefined, {
-    pollingInterval: pollingInterval ?? 1000,
+    pollingInterval,
   });
 
   return (
     <Box {...other}>
-      <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <ColoredBox color="primary.main" />
-        <Typography noWrap>Oven: {status?.oven.toFixed(2) ?? 0.0}°C</Typography>
-      </Box>
+      <TemperatureView
+        color="primary.main"
+        temperature={status?.oven ?? -999}
+        prepend="Oven: "
+      />
+      <TemperatureView
+        color="secondary.main"
+        temperature={status?.chip ?? -999}
+        prepend="Chip: "
+      />
 
-      <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <ColoredBox color="secondary.main" />
-        <Typography noWrap>Chip: {status?.chip.toFixed(2) ?? 0.0}°C</Typography>
-      </Box>
-
-      {status && status.fault !== 0 && (
-        <Card>
+      <Snackbar open={status && status.fault !== 0}>
+        <Alert severity="error">
           <Typography color="error">Sensor fault: {status?.fault}</Typography>
           {status?.faultText.map((value, index) => (
             <Typography key={index} color="error">
               {value}
             </Typography>
           ))}
-        </Card>
-      )}
+        </Alert>
+      </Snackbar>
 
-      {error && <Typography color="error">{getErrorMessage(error)}</Typography>}
+      <Snackbar open={error !== undefined}>
+        <Alert severity="error">{getErrorMessage(error)}</Alert>
+      </Snackbar>
     </Box>
   );
 }

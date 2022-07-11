@@ -4,21 +4,21 @@ import { splitAppApi } from "../splitAppApi";
 
 export const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
-export type TemperatureHistorySlice = {
+export interface TemperatureHistorySlice {
   uptime: number;
   oven: number;
   chip: number;
-};
+}
 
 export interface HistoryGetResponse {
   historySampleRate: number;
   history: [TemperatureHistorySlice];
 }
 
-export type StatusGetResponse = {
+export interface StatusGetResponse extends TemperatureHistorySlice {
   fault: number;
   faultText: string[];
-} & TemperatureHistorySlice;
+}
 
 const statusJsonUrl = "status.json";
 const temperatureJsonUrl = "temperature.json";
@@ -31,7 +31,6 @@ const historyAdapter = createEntityAdapter<TemperatureHistorySlice>({
 });
 const initialHistoryState = historyAdapter.getInitialState();
 
-export const historySelector = historyAdapter.getSelectors();
 export const { selectAll: selectEntireHistory } = historyAdapter.getSelectors(
   (state?: EntityState<TemperatureHistorySlice>) => state ?? initialHistoryState
 );
