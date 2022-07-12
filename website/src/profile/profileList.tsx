@@ -6,6 +6,7 @@ import {
   Tooltip,
   Paper,
   PaperProps,
+  Skeleton,
 } from "@mui/material";
 import { useState } from "react";
 import ConfirmationDialog from "../my-material-ui/confirmationDialog";
@@ -27,8 +28,10 @@ export default function ProfileList(props: PaperProps) {
 
   const [deleteProfile] = useDeleteProfileMutation();
   const [createProfile] = useCreateProfileMutation();
-  const { profiles } = useGetProfilesQuery(undefined, {
-    selectFromResult: ({ data }) => ({
+  const { profiles, isLoading, isError } = useGetProfilesQuery(undefined, {
+    selectFromResult: ({ data, isLoading, isError }) => ({
+      isLoading,
+      isError,
       profiles: selectAllProfiles(data),
     }),
   });
@@ -48,6 +51,9 @@ export default function ProfileList(props: PaperProps) {
   const handleProfileDelete: ProfileViewProps["onDelete"] = (profile) =>
     setProfileToDelete(profile);
 
+  const isInaccessible: boolean =
+    (isLoading || isError) && profiles.length <= 0;
+
   return (
     <Paper elevation={2} {...props}>
       <Box sx={{ display: "flex", flexDirection: "row" }}>
@@ -55,11 +61,15 @@ export default function ProfileList(props: PaperProps) {
           Profiles
         </Typography>
 
-        <Tooltip title="Create a new Profile" sx={{ flexGrow: 0 }}>
-          <IconButton aria-label="create profile" onClick={handleClickOpen}>
+        <IconButton
+          aria-label="create profile"
+          onClick={handleClickOpen}
+          disabled={isInaccessible}
+        >
+          <Tooltip title="Create a new Profile" sx={{ flexGrow: 0 }}>
             <Add />
-          </IconButton>
-        </Tooltip>
+          </Tooltip>
+        </IconButton>
       </Box>
 
       <ProfileNameDialog
@@ -67,6 +77,15 @@ export default function ProfileList(props: PaperProps) {
         onSubmit={handleSubmit}
         onClose={handleClose}
       />
+
+      {isInaccessible && (
+        <Skeleton
+          variant="rectangular"
+          width={210}
+          height={240}
+          animation={isLoading ? "pulse" : false}
+        />
+      )}
 
       {profiles.map((profile) => (
         <ProfileView

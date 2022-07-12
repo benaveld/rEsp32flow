@@ -41,7 +41,7 @@ const statusApi = splitAppApi.injectEndpoints({
       query: () => statusJsonUrl,
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const invalidateHistory = () =>
-          dispatch(statusApi.util.invalidateTags(["history"]));
+          dispatch(statusApi.util.invalidateTags(["history", "profiles"]));
 
         try {
           const { data: statusUpdate } = await queryFulfilled;
