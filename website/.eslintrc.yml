@@ -16,7 +16,10 @@ plugins:
   - react
   - "@typescript-eslint"
 rules:
-  { "@typescript-eslint/no-unused-vars": ["error", { "vars": "all", "args": "after-used", "ignoreRestSiblings": false, "argsIgnorePattern": "^_" }] }
+  no-unused-vars: off
+  "@typescript-eslint/no-unused-vars":
+    - warn
+    - argsIgnorePattern: "^_" # Don't report if an arg starts with a _
 ignorePatterns:
   - build/**
 

@@ -18,7 +18,7 @@ import {
   stopEditingProfileStep,
 } from "./state/profileSlice";
 
-type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
+export type ProfileStepFormProps = Omit<CardProps, "component" | "onSubmit">;
 
 export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const editingProfileStep = useAppSelector(selectEditingProfileStep);
@@ -32,8 +32,8 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const [putProfileStep] = usePutProfileStepMutation();
 
   const handleChange =
-    (prop: keyof typeof step) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (prop: keyof typeof step): TextFieldProps["onChange"] =>
+    (event) => {
       setStep((oldStep) => ({ ...oldStep, [prop]: event.target.value }));
     };
 
@@ -100,7 +100,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
               value={step.Kp}
               onChange={handleChange("Kp")}
               error={step.Kp <= 0}
-              helperText="Must be greater the 0."
+              helperText="Must be greater then 0."
             />
           </Grid>
           <Grid item xs={2}>
@@ -110,7 +110,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
               value={step.Ki}
               onChange={handleChange("Ki")}
               error={step.Ki <= 0}
-              helperText="Must be greater the 0."
+              helperText="Must be greater then 0."
             />
           </Grid>
           <Grid item xs={2}>
@@ -125,9 +125,9 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
           </Grid>
         </Grid>
       </CardContent>
-      <CardActions>
-        <Button type="submit">Save</Button>
+      <CardActions sx={{ flexDirection: "row-reverse" }}>
         <Button onClick={handleCancel}>Cancel</Button>
+        <Button type="submit">StandardSave</Button>
       </CardActions>
     </Card>
   );

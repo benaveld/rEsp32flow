@@ -6,14 +6,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { blue, red } from "@mui/material/colors";
-import {
-  createContext,
-  createRef,
-  RefObject,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useMemo, useState } from "react";
 import AppAppBar from "./appAppBar";
 import { useDocTitle } from "./hooks";
 import SideBar from "./sideBar";
@@ -25,15 +18,9 @@ export const ColorModeContext = createContext({
   },
 });
 
-const useRefDimensions = <t extends RefObject<HTMLElement>>(ref: t) => {
-  const [dimensions, setDimensions] = useState({ width: 1, height: 2 });
-  useEffect(() => {
-    if (ref.current) {
-      setDimensions(ref.current.getBoundingClientRect());
-    }
-  }, [ref]);
-  return dimensions;
-};
+type ColorModeContextType = Parameters<
+  typeof ColorModeContext.Provider
+>[0]["value"];
 
 function App() {
   useDocTitle("rEsp32flow");
@@ -42,7 +29,7 @@ function App() {
     useMediaQuery("(prefers-color-scheme: dark)") ? "dark" : "light"
   );
 
-  const colorMode = useMemo(
+  const colorMode = useMemo<ColorModeContextType>(
     () => ({
       toggleColorMode: () => {
         setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
@@ -63,20 +50,16 @@ function App() {
     [mode]
   );
 
-  const appBarRef = createRef<HTMLDivElement>();
-  const appBarDimensions = useRefDimensions(appBarRef);
-
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <Box bgcolor="background.default" color="text.primary">
-          <AppAppBar ref={appBarRef} />
+          <AppAppBar position="sticky" />
 
           <Box
             sx={{
               display: "flex",
               flexDirection: "row",
-              marginTop: appBarDimensions.height + "px",
               height: "100%",
             }}
           >

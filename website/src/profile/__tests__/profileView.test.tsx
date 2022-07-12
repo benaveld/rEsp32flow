@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import { setupServer } from "msw/lib/node";
-import { render, screen } from "../../../utils/test-utils";
+import { doNothing, render, screen } from "../../../utils/test-utils";
 import { Profile } from "../profileTypes";
 import { ProfileView } from "../profileView";
 import { testStep } from "./profileStepView.test";
@@ -23,11 +23,16 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 test("view name", () => {
-  render(<ProfileView profile={testProfile} />);
+  render(<ProfileView profile={testProfile} onDelete={doNothing} />);
   expect(screen.getByText(testProfile.name)).toBeVisible();
 });
 
 test("view name with step", () => {
-  render(<ProfileView profile={{ ...testProfile, steps: [testStep] }} />);
+  render(
+    <ProfileView
+      profile={{ ...testProfile, steps: [testStep] }}
+      onDelete={doNothing}
+    />
+  );
   expect(screen.getByText(testProfile.name)).toBeVisible();
 });

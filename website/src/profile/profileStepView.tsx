@@ -32,10 +32,10 @@ function createAction(props: createActionProps) {
   );
 }
 
-type ProfileStepViewProps = {
+export interface ProfileStepViewProps extends CardProps {
   step: ProfileStep;
   canEdit?: boolean;
-} & CardProps;
+}
 
 export function ProfileStepView({
   step,
