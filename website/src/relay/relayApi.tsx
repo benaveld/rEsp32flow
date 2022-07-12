@@ -1,5 +1,4 @@
-import { baseApiUrl, baseUrl } from "../config";
-import { splitAppApi } from "../splitAppApi";
+import { splitAppApi, baseApiUrl, baseUrl } from "../splitAppApi";
 import { Profile } from "../profile/profileTypes";
 
 const relayUrl = "relay";

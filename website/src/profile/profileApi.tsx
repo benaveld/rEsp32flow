@@ -2,9 +2,8 @@ import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
 import { MaybeDrafted } from "@reduxjs/toolkit/dist/query/core/buildThunks";
 import { MutationLifecycleApi } from "@reduxjs/toolkit/dist/query/endpointDefinitions";
 import { BaseQueryFn } from "@reduxjs/toolkit/dist/query/react";
-import { baseApiUrl } from "../config";
 import { getErrorMessage } from "../errorUtils";
-import { splitAppApi } from "../splitAppApi";
+import { splitAppApi, baseApiUrl } from "../splitAppApi";
 import { Profile, ProfileStep } from "./profileTypes";
 
 const profileUrl = "profiles.json";

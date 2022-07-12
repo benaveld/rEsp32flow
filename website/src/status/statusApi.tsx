@@ -1,6 +1,5 @@
 import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
-import { baseApiUrl } from "../config";
-import { splitAppApi } from "../splitAppApi";
+import { splitAppApi, baseApiUrl } from "../splitAppApi";
 
 export const keepHistoryTime = 10 * 60 * 1000; // 10 min in ms
 
