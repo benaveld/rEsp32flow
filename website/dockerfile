@@ -1,0 +1,5 @@
+FROM node:latest
+
+USER node
+
+RUN mkdir -p /home/node/app/node_modules
