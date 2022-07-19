@@ -4,6 +4,7 @@ import {
   ThemeProvider,
   PaletteMode,
   useMediaQuery,
+  Grid,
 } from "@mui/material";
 import { blue, red } from "@mui/material/colors";
 import { createContext, useMemo, useState } from "react";
@@ -56,35 +57,24 @@ function App() {
         <Box bgcolor="background.default" color="text.primary">
           <AppAppBar position="sticky" />
 
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              height: "100%",
-            }}
+          <Grid
+            container
+            spacing={{ xs: 2, md: 3 }}
+            columns={{ xs: 4, sm: 8, md: 12 }}
+            bgcolor="background.default"
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                padding: "1ch",
-                height: "100%",
-                flexGrow: 0,
-              }}
-            >
+            <Grid item xs={true} md={2}>
               <SideBar />
-            </Box>
-            <Box
-              sx={{
-                padding: "1ch",
-                flexGrow: 1,
-                minWidth: "80em",
-                minHeight: "55em",
-              }}
+            </Grid>
+            <Grid
+              item
+              xs={true}
+              md={10}
+              sx={{ minHeight: "55em", height: "auto" }}
             >
               <TemperatureChart />
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </Box>
       </ThemeProvider>
     </ColorModeContext.Provider>

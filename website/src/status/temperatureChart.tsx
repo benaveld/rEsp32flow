@@ -1,11 +1,6 @@
-import { Line } from "react-chartjs-2";
+import { ChartProps, Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
-import {
-  Chart as ChartJS,
-  ChartOptions,
-  ChartData,
-  registerables,
-} from "chart.js";
+import { Chart as ChartJS, registerables } from "chart.js";
 import { useTheme } from "@mui/material";
 import {
   selectEntireHistory,
@@ -22,17 +17,24 @@ const TemperatureChart = () => {
 
   const latestUptime =
     history.length > 0 ? history[history.length - 1].uptime : 0;
-  const agedHistory = history.map((value) => {
-    return { ...value, age: latestUptime - value.uptime };
-  });
+  const agedHistory = history.map((value) => ({
+    ...value,
+    age: latestUptime - value.uptime,
+  }));
 
-  const data: ChartData<"line", typeof agedHistory> = {
+  type LineProps = ChartProps<"line", typeof agedHistory>;
+
+  const commonDataProps: LineProps["data"]["datasets"][number] = {
+    data: agedHistory,
+    pointRadius: 0,
+    pointHitRadius: 0,
+  };
+
+  const data: LineProps["data"] = {
     datasets: [
       {
+        ...commonDataProps,
         label: "Oven",
-        data: agedHistory,
-        pointRadius: 0,
-        pointHitRadius: 0,
         borderColor: palette.primary.main,
         backgroundColor: palette.primary.light,
         parsing: {
@@ -41,10 +43,8 @@ const TemperatureChart = () => {
         },
       },
       {
+        ...commonDataProps,
         label: "Chip",
-        data: agedHistory,
-        pointRadius: 0,
-        pointHitRadius: 0,
         borderColor: palette.secondary.main,
         backgroundColor: palette.secondary.light,
         parsing: {
@@ -55,7 +55,7 @@ const TemperatureChart = () => {
     ],
   };
 
-  const options: ChartOptions<"line"> = {
+  const options: LineProps["options"] = {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -99,7 +99,15 @@ const TemperatureChart = () => {
     },
   };
 
-  return <Line options={options} data={data} />;
+  return (
+    <Line
+      options={options}
+      data={data}
+      style={{
+        backgroundColor: palette.background.default,
+      }}
+    />
+  );
 };
 
 export default TemperatureChart;
