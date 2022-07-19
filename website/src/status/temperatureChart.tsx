@@ -1,13 +1,39 @@
 import { ChartProps, Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
 import { Chart as ChartJS, registerables } from "chart.js";
-import { useTheme } from "@mui/material";
+import { PaletteColor, useTheme } from "@mui/material";
 import {
   selectEntireHistory,
+  TemperatureHistorySlice,
   useGetTemperatureHistoryQuery,
 } from "./statusApi";
+import { useAppColor } from "../hooks";
 
 ChartJS.register(...registerables);
+
+interface AgedHistorySlice extends TemperatureHistorySlice {
+  age: number;
+}
+type LineProps = ChartProps<"line", AgedHistorySlice[]>;
+
+interface getDatasetPropsProps {
+  paletteColor: PaletteColor;
+  yAxisKey: Exclude<keyof AgedHistorySlice, "age" | "uptime">;
+}
+
+const getDatasetProps = ({
+  paletteColor,
+  yAxisKey,
+}: getDatasetPropsProps): Partial<LineProps["data"]["datasets"][number]> => ({
+  pointRadius: 0,
+  pointHitRadius: 0,
+  borderColor: paletteColor.main,
+  backgroundColor: paletteColor.light,
+  parsing: {
+    xAxisKey: "age",
+    yAxisKey: yAxisKey,
+  },
+});
 
 const TemperatureChart = () => {
   const { history } = useGetTemperatureHistoryQuery(undefined, {
@@ -15,42 +41,31 @@ const TemperatureChart = () => {
   });
   const { palette } = useTheme();
 
-  const latestUptime =
+  const ovenDatasetProps = getDatasetProps({
+    paletteColor: useAppColor("oven"),
+    yAxisKey: "oven",
+  });
+  const chipDatasetProps = getDatasetProps({
+    paletteColor: useAppColor("chip"),
+    yAxisKey: "chip",
+  });
+
+  const latestReceivedUptime =
     history.length > 0 ? history[history.length - 1].uptime : 0;
-  const agedHistory = history.map((value) => ({
+  const agedHistory: AgedHistorySlice[] = history.map((value) => ({
     ...value,
-    age: latestUptime - value.uptime,
+    age: latestReceivedUptime - value.uptime,
   }));
-
-  type LineProps = ChartProps<"line", typeof agedHistory>;
-
-  const commonDataProps: LineProps["data"]["datasets"][number] = {
-    data: agedHistory,
-    pointRadius: 0,
-    pointHitRadius: 0,
-  };
 
   const data: LineProps["data"] = {
     datasets: [
       {
-        ...commonDataProps,
-        label: "Oven",
-        borderColor: palette.primary.main,
-        backgroundColor: palette.primary.light,
-        parsing: {
-          xAxisKey: "age",
-          yAxisKey: "oven",
-        },
+        ...ovenDatasetProps,
+        data: agedHistory,
       },
       {
-        ...commonDataProps,
-        label: "Chip",
-        borderColor: palette.secondary.main,
-        backgroundColor: palette.secondary.light,
-        parsing: {
-          xAxisKey: "age",
-          yAxisKey: "chip",
-        },
+        ...chipDatasetProps,
+        data: agedHistory,
       },
     ],
   };

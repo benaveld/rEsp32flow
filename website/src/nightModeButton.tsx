@@ -1,7 +1,7 @@
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { IconButton, IconButtonProps, useTheme } from "@mui/material";
 import { forwardRef, useContext } from "react";
-import { ColorModeContext } from "./App";
+import { ColorModeContext } from "./colorModeContext";
 
 export type NightModeToggleButtonProps = {
   darkElement?: JSX.Element;
