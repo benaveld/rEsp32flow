@@ -1,6 +1,12 @@
 import { ChartProps, Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
-import { Chart as ChartJS, registerables } from "chart.js";
+import {
+  Chart as ChartJS,
+  LinearScale,
+  LineElement,
+  PointElement,
+  TimeScale,
+} from "chart.js";
 import { PaletteColor, useTheme } from "@mui/material";
 import {
   selectEntireHistory,
@@ -9,7 +15,7 @@ import {
 } from "./statusApi";
 import { useAppColor } from "../hooks";
 
-ChartJS.register(...registerables);
+ChartJS.register(LineElement, TimeScale, LinearScale, PointElement);
 
 interface AgedHistorySlice extends TemperatureHistorySlice {
   age: number;
