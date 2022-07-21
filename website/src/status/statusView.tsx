@@ -20,12 +20,12 @@ export default function StatusView({
       <TemperatureView
         type="oven"
         temperature={status?.oven ?? -999}
-        prepend="Oven: "
+        title="Oven temperature"
       />
       <TemperatureView
         type="chip"
         temperature={status?.chip ?? -999}
-        prepend="Chip: "
+        title="Micro-controller temperature"
       />
 
       <Snackbar open={status && status.fault !== 0}>

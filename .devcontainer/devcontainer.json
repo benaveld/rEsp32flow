@@ -23,8 +23,7 @@
     "platformio-ide.forceUploadAndMonitor": true,
     "platformio-ide.useBuiltinPIOCore": false,
     "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
-    "platformio-ide.disablePIOHomeStartup": true,
-    "cSpell.words": ["reduxjs", "bgcolor"]
+    "platformio-ide.disablePIOHomeStartup": true
   },
 
   "extensions": [

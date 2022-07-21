@@ -26,7 +26,7 @@ const TemperatureView = forwardRef<HTMLDivElement, TemperatureViewProps>(
   ) => {
     const Icon = appIconPalette[type];
     return (
-      <Stack ref={ref} direction="row" {...other}>
+      <Stack ref={ref} direction="row" spacing={1} {...other}>
         <Icon {...iconProps} />
         <Typography>
           {prepend}

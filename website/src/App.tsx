@@ -1,4 +1,4 @@
-import { AppBar, Box, Grid, Toolbar } from "@mui/material";
+import { AppBar, Box, Stack, Toolbar } from "@mui/material";
 import TemperatureChart from "./status/temperatureChart";
 import { useGetRelayStatusQuery } from "./relay/relayApi";
 import ProfileList from "./profile/profileList";
@@ -12,8 +12,8 @@ function App() {
   });
 
   return (
-    <Box sx={{ color: "text.primary" }}>
-      <AppBar position="sticky">
+    <Box sx={{ color: "text.primary", bgcolor: "background.default" }}>
+      <AppBar position="sticky" color="inherit">
         <Toolbar>
           <StatusView sx={{ flexGrow: 1 }} />
           <EStopButton disabled={!isRelayOn}>EStop</EStopButton>
@@ -21,22 +21,25 @@ function App() {
         </Toolbar>
       </AppBar>
 
-      <Grid
-        container
-        direction="row-reverse"
+      <Stack
+        direction={{ xs: "column-reverse", md: "row" }}
         spacing={{ xs: 2, md: 3 }}
-        columns={{ xs: 4, sm: 8, md: 12 }}
-        sx={{ bgcolor: "background.default" }}
+        sx={{ bgcolor: "inherit", marginTop: "8px" }}
       >
-        <Grid item xs={true} md={10}>
-          <TemperatureChart />
-        </Grid>
-
-        <Grid item xs={true} md={2}>
+        <Box sx={{ flexBasis: "400px" }}>
           <RelayStatusView hidden={!isRelayOn} />
           <ProfileList hidden={isRelayOn} />
-        </Grid>
-      </Grid>
+        </Box>
+
+        <Box
+          sx={{
+            flexGrow: 1,
+            paddingRight: "8px",
+          }}
+        >
+          <TemperatureChart />
+        </Box>
+      </Stack>
     </Box>
   );
 }

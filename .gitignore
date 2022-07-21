@@ -1,6 +1,6 @@
-.pio
+/.pio
 /data
-.vscode
+/.vscode
 !.vscode/settings.json
 
 lib/webserver/credential.h
