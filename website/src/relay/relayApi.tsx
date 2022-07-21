@@ -12,6 +12,7 @@ export interface RelayApiGet {
     stepTime: number;
     relayOnTime: number;
     updateRate: number;
+    uptime: number;
   };
 }
 

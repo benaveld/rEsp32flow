@@ -1,6 +1,5 @@
 import { Alert, Box, BoxProps, Snackbar, Typography } from "@mui/material";
 import { SubscriptionOptions } from "@reduxjs/toolkit/dist/query/core/apiState";
-import { appPalette } from "../colorModeContext";
 import { getErrorMessage } from "../errorUtils";
 import { useGetStatusUpdateQuery } from "./statusApi";
 import TemperatureView from "./temperatureView";
@@ -19,12 +18,12 @@ export default function StatusView({
   return (
     <Box {...other}>
       <TemperatureView
-        color={`${appPalette["oven"]}.main`}
+        type="oven"
         temperature={status?.oven ?? -999}
         prepend="Oven: "
       />
       <TemperatureView
-        color={`${appPalette["chip"]}.main`}
+        type="chip"
         temperature={status?.chip ?? -999}
         prepend="Chip: "
       />

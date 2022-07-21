@@ -78,7 +78,7 @@ const TemperatureChart = () => {
 
   const options: LineProps["options"] = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
     animation: false,
     plugins: {
       legend: {
@@ -120,15 +120,7 @@ const TemperatureChart = () => {
     },
   };
 
-  return (
-    <Line
-      options={options}
-      data={data}
-      style={{
-        backgroundColor: palette.background.default,
-      }}
-    />
-  );
+  return <Line options={options} data={data} />;
 };
 
 export default TemperatureChart;

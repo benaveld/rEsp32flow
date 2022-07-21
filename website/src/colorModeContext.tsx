@@ -1,28 +1,11 @@
 import {
   createTheme,
-  Palette,
-  PaletteColor,
   PaletteMode,
   ThemeProvider,
   useMediaQuery,
 } from "@mui/material";
 import { blue, red } from "@mui/material/colors";
 import { createContext, ReactNode, useMemo, useState } from "react";
-
-// Returns only the keys of Type that extends TargetType.
-type Only<Type, TargetType> = {
-  [Key in keyof Type]: Type[Key] extends TargetType ? TargetType : never;
-};
-
-export type AppPaletteReturnType = PaletteColor;
-interface AppPaletteType {
-  [key: string]: keyof Only<Palette, AppPaletteReturnType>;
-}
-
-export const appPalette: AppPaletteType = {
-  oven: "primary",
-  chip: "secondary",
-};
 
 export const ColorModeContext = createContext({
   toggleColorMode: () => {

@@ -1,54 +1,39 @@
-import { BoxProps, Box, Typography } from "@mui/material";
-import { forwardRef } from "react";
+import { Typography, Stack, StackProps, SvgIconProps } from "@mui/material";
+import { forwardRef, ReactNode } from "react";
+import { appIconPalette } from "../appPalette";
 
-type ColoredBoxProps = Required<Pick<BoxProps, "color">> &
-  Omit<BoxProps, "color" | "bgcolor">;
-
-const ColoredBox = forwardRef<HTMLDivElement, ColoredBoxProps>(
-  ({ color, sx, ...other }, ref) => {
-    return (
-      <Box
-        ref={ref}
-        bgcolor={color}
-        sx={{
-          border: "thin solid black",
-          width: "0.8em",
-          height: "0.8em",
-          margin: "auto 0.2em",
-          ...sx,
-        }}
-        {...other}
-      />
-    );
-  }
-);
-ColoredBox.displayName = "ColoredBox";
-
-export interface TemperatureViewProps extends BoxProps {
+export interface TemperatureViewProps extends StackProps {
   temperature: number;
   fractionDigits?: number;
-  prepend?: string | JSX.Element;
-  append?: string | JSX.Element;
+  prepend?: ReactNode;
+  append?: ReactNode;
+  type: keyof typeof appIconPalette;
+  iconProps?: SvgIconProps;
 }
 
 const TemperatureView = forwardRef<HTMLDivElement, TemperatureViewProps>(
   (
-    { color, temperature, prepend, append, fractionDigits = 2, sx, ...other },
+    {
+      type,
+      temperature,
+      prepend,
+      append,
+      iconProps,
+      fractionDigits = 2,
+      ...other
+    },
     ref
   ) => {
+    const Icon = appIconPalette[type];
     return (
-      <Box
-        ref={ref}
-        sx={{ display: "flex", flexDirection: "row", ...sx }}
-        {...other}
-      >
-        {color !== undefined && <ColoredBox color={color} />}
+      <Stack ref={ref} direction="row" {...other}>
+        <Icon {...iconProps} />
         <Typography>
           {prepend}
           {temperature.toFixed(fractionDigits)}°C
           {append}
         </Typography>
-      </Box>
+      </Stack>
     );
   }
 );

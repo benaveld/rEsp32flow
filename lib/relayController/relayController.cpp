@@ -149,6 +149,7 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
     info["stepTime"] = getStepTimer();
     info["relayOnTime"] = m_relayOnTime;
     info["updateRate"] = m_sampleRate;
+    info["uptime"] = millis();
   }
   xSemaphoreGiveRecursive(m_mutex);
 }
@@ -180,13 +181,13 @@ void resp32flow::RelayController::attachWebSocket(decltype(m_ws) a_ws)
 
 auto resp32flow::RelayController::stepBegin() const -> stepItr_t
 {
-  if(m_selectedProfile == nullptr)
+  if (m_selectedProfile == nullptr)
     throw std::runtime_error("No selected profile.");
   return m_selectedProfile->cbegin();
 }
 auto resp32flow::RelayController::stepEnd() const -> stepItr_t
 {
-  if(m_selectedProfile == nullptr)
+  if (m_selectedProfile == nullptr)
     throw std::runtime_error("No selected profile.");
   return m_selectedProfile->cend();
 }

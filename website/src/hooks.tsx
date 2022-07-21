@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { AppDispatch, AppState } from "./state";
-import { appPalette, AppPaletteReturnType } from "./colorModeContext";
+import { appPalette, AppPaletteKeys, AppPaletteReturnType } from "./appPalette";
 import { useTheme } from "@mui/material";
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -17,5 +17,5 @@ export const useDocTitle = (title: string) => {
   return [docTitle, setDocTitle];
 };
 
-export const useAppColor = (key: keyof typeof appPalette) =>
+export const useAppColor = (key: AppPaletteKeys) =>
   useTheme().palette[appPalette[key]] as AppPaletteReturnType;

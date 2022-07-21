@@ -1,4 +1,4 @@
-import { Add, Delete, ExpandMore, Start } from "@mui/icons-material";
+import { Add, Delete, ExpandMore, PlayArrow } from "@mui/icons-material";
 import {
   Accordion,
   AccordionActions,
@@ -6,6 +6,7 @@ import {
   AccordionProps,
   AccordionSummary,
   IconButton,
+  Stack,
   Typography,
 } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../hooks";
@@ -39,15 +40,16 @@ export const ProfileView = ({
 
   const commonSettings: Pick<ProfileStepViewProps, keyof ProfileStepFormProps> =
     {
-      sx: { margin: "8px 0px" },
       elevation: 2,
     };
 
-  const editingStepFormProps: ProfileStepFormProps = {
-    ...commonSettings,
-    key: editingStepId,
-    "aria-label": `${profile.name}_${editingStepId}_edit`,
-  };
+  const EditingStepForm = (
+    <ProfileStepForm
+      {...commonSettings}
+      key={editingStepId}
+      aria-label={`${profile.name}_${editingStepId}_edit`}
+    />
+  );
 
   return (
     <Accordion aria-label={`${profile.id} ${profile.name}`} {...other}>
@@ -60,29 +62,30 @@ export const ProfileView = ({
       </AccordionSummary>
 
       <AccordionDetails sx={{ padding: "0em 0.5em" }}>
-        {profile.steps.map((step) =>
-          step.id === editingStepId ? (
-            <ProfileStepForm {...editingStepFormProps} />
-          ) : (
-            <ProfileStepView
-              {...commonSettings}
-              aria-label={profile.name + "_" + step.id}
-              key={step.id}
-              step={step}
-              canEdit
-            />
-          )
-        )}
+        <Stack spacing={2}>
+          {profile.steps.map((step) =>
+            step.id === editingStepId ? (
+              EditingStepForm
+            ) : (
+              <ProfileStepView
+                {...commonSettings}
+                aria-label={profile.name + "_" + step.id}
+                key={step.id}
+                step={step}
+                canEdit
+              />
+            )
+          )}
+        </Stack>
 
         {editingStepId !== undefined &&
-          selectProfileStep(profile, editingStepId) === undefined && (
-            <ProfileStepForm {...editingStepFormProps} />
-          )}
+          selectProfileStep(profile, editingStepId) === undefined &&
+          EditingStepForm}
       </AccordionDetails>
 
       <AccordionActions>
         <IconButton onClick={onStartProfile}>
-          <Start />
+          <PlayArrow />
         </IconButton>
 
         <IconButton onClick={addStep}>

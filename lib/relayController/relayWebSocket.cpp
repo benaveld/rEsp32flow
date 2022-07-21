@@ -46,7 +46,7 @@ void resp32flow::RelayWebSocket::attachToService(AsyncWebServer &a_server)
 String resp32flow::RelayWebSocket::getJsonMessage() const
 {
   DynamicJsonDocument doc(JSON_SIZE);
-  doc["uptime"] = esp_timer_get_time() / 1000; // Needed so that the root json is an object.
+  doc["uptime"] = millis(); // Needed so that the root json is an object.
   toJSON(doc);
   char buffer[JSON_SIZE];
   serializeJson(doc, buffer);
