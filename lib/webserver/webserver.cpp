@@ -8,25 +8,53 @@
 #error Not a ESP32 platform
 #endif
 
+// STD
+#include <functional>
+#include <array>
+#include <string>
+
+// ESP
 #include <SPIFFS.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
+#include <ESPmDNS.h>
+
+// rEsp32flow
 #include <temperatureHistory.h>
 #include <relayWebSocket.h>
 #include <profileHandler.h>
-#include <string>
-#include <ESPmDNS.h>
 #include "credential.h"
 #include "profileApi.h"
 #include "statusApi.h"
-#include <functional>
+
+static const std::array<std::string, 6> STATIC_FILES{{"/favicon.svg",
+                                                      "/asset-manifest.json",
+                                                      "/manifest.json",
+                                                      "/robots.txt",
+                                                      "/logo192.png",
+                                                      "/logo512.png"}};
+
+static void onNotFound(AsyncWebServerRequest *request)
+{
+  // Respones to CORS pre-flight requests.
+  if (request->method() == HTTP_OPTIONS)
+  {
+    auto response = request->beginResponse(200);
+    response->addHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+    response->addHeader("Access-Control-Max-Age", "60"); // Cache results of a preflight request for 1 minute
+    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+    request->send(response);
+    return;
+  }
+  request->send(404);
+}
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)
 {
 }
 
-void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor, RelayWebSocket *a_relayWebSocket, ProfileHandler *a_profileHandler)
+void resp32flow::WebServer::begin(const TemperatureHistory *a_temperatureSensor, RelayWebSocket *a_relayWebSocket, ProfileHandler *a_profileHandler)
 {
   using namespace std::placeholders;
   using namespace resp32flow::webServer::api;
@@ -69,39 +97,18 @@ void resp32flow::WebServer::setup(const TemperatureHistory *a_temperatureSensor,
   }
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  // Respones to CORS pre-flight requests.
-  m_server.onNotFound([](AsyncWebServerRequest *request)
-                      {
-  if (request->method() == HTTP_OPTIONS) {
-    auto response = request->beginResponse(200);
-    response->addHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-    response->addHeader("Access-Control-Max-Age", "60"); // Cache results of a preflight request for 1 minute
-    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
-    request->send(response);
-  } else {
-    request->send(404);
-  } });
+  m_server.onNotFound(onNotFound);
 
   m_server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(SPIFFS, "/index.html", "text/html"); });
 
-  m_server.serveStatic("/static/", SPIFFS, "/static/");
-  m_server.serveStatic("/favicon.ico", SPIFFS, "/favicon.ico");
-  m_server.serveStatic("/asset-manifest.json", SPIFFS, "/asset-manifest.json");
+  m_server.serveStatic("/static/", SPIFFS, "/static/", "max-age=31536000");
+  for (auto &&staticFile : STATIC_FILES)
+    m_server.serveStatic(staticFile.c_str(), SPIFFS, staticFile.c_str());
 
   m_server.on("/api/status.json", HTTP_GET, std::bind(respondStatusJson, a_temperatureSensor->getSensor(), _1));
 
-  m_server.on("/api/temperature.json", HTTP_GET, [a_temperatureSensor](AsyncWebServerRequest *request)
-              {
-                int64_t timeBack = 60000;
-                if(request->hasParam("timeBack")){
-                  timeBack = std::strtoll(request->getParam("timeBack")->value().c_str(), nullptr, 10);
-                }
-
-                auto response = new AsyncJsonResponse(false, 0x10000);
-                a_temperatureSensor->toJson(response->getRoot(), timeBack);
-                response->setLength();
-                request->send(response); });
+  m_server.on("/api/temperature.json", HTTP_GET, std::bind(respondTemperatureJson, a_temperatureSensor, _1));
 
   m_server.on("/api/profiles.json", HTTP_GET | HTTP_DELETE, std::bind(handleProfile, a_profileHandler, _1));
 

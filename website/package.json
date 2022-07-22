@@ -2,6 +2,7 @@
   "name": "resp32flow",
   "version": "0.1.0",
   "private": true,
+  "repository": "github:benaveld/rEsp32flow",
   "type": "module",
   "dependencies": {
     "@emotion/react": "^11.9.3",
@@ -27,7 +28,7 @@
     "test": "react-scripts test",
     "test:noWatch": "react-scripts test --watchAll=false",
     "eject": "react-scripts eject",
-    "prepare": "cd .. && husky install"
+    "prepare": "cd .. && husky install || echo '.git dir not found.'"
   },
   "browserslist": {
     "production": [

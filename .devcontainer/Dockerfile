@@ -4,6 +4,9 @@
 ARG VARIANT="3.15"
 FROM mcr.microsoft.com/vscode/devcontainers/base:0-alpine-${VARIANT}
 
+ARG WORKSPACE="/rEsp32flow"
+WORKDIR ${WORKSPACE}
+
 RUN apk update \
   && apk upgrade \
   && apk -q add --no-cache \
@@ -23,4 +26,6 @@ RUN mkdir -p /etc/udev/rules.d/ \
   && curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/master/scripts/99-platformio-udev.rules > /etc/udev/rules.d/99-platformio-udev.rules
 
 # add user to device group so it might access the dev board and set the shell to zsh
-RUN usermod -a -G dialout -s $(which zsh) vscode
+RUN usermod -a -G dialout -s $(which zsh) vscode \
+  && mkdir -p .pio data website/node_modules \
+  && chown -R vscode:vscode .pio data website/node_modules

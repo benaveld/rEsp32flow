@@ -16,6 +16,6 @@ namespace resp32flow
   public:
     static constexpr auto c_hostname = "resp32flow";
     WebServer(uint16_t a_port);
-    void setup(const TemperatureHistory *a_temperatureSensor, RelayWebSocket *a_relayWebSocket, ProfileHandler *a_profileHandler);
+    void begin(const TemperatureHistory *a_temperatureSensor, RelayWebSocket *a_relayWebSocket, ProfileHandler *a_profileHandler);
   };
 }

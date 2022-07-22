@@ -33,7 +33,7 @@ void setup()
   relayController = new RelayController(RELAY_PIN, temperatureSensor);
   relayWebSocket = new RelayWebSocket(*relayController, *profileHandler);
 
-  webServer.setup(temperatureHistory, relayWebSocket, profileHandler);
+  webServer.begin(temperatureHistory, relayWebSocket, profileHandler);
 
   log_v("setup done");
 }

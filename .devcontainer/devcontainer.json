@@ -1,23 +1,23 @@
 {
-	"name": "Alpine",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": { "VARIANT": "3.15" }
-	},
-
+  "name": "Alpine",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "WORKSPACE": "${containerWorkspaceFolder}",
+      "VARIANT": "3.15"
+    }
+  },
   "mounts": [
     "source=/dev,target=/dev,type=bind,consistency=consistent",
-    "source=pio,target=${containerWorkspaceFolder}/.pio,type=volume",
-    "source=vscode,target=${containerWorkspaceFolder}/.vscode,type=volume",
-    "source=data,target=${containerWorkspaceFolder}/data,type=volume", // linked with website/build
-    "source=data,target=${containerWorkspaceFolder}/website/build,type=volume", // linked with data
-    "source=node_modules,target=${containerWorkspaceFolder}/website/node_modules,type=volume"
+    "source=resp32flow_dev_pio,target=${containerWorkspaceFolder}/.pio,type=volume",
+    "source=resp32flow_dev_data,target=${containerWorkspaceFolder}/data,type=volume", 
+    "source=resp32flow_dev_node_modules,target=${containerWorkspaceFolder}/website/node_modules,type=volume"
   ],
-
-	// Replace when using a ptrace-based debugger like C++, Go, and Rust
-	// "runArgs": [ "--init", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
-  "runArgs": ["--device-cgroup-rule=c 188:* rwm"],
-
+  // Replace when using a ptrace-based debugger like C++, Go, and Rust
+  // "runArgs": [ "--init", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+  "runArgs": [
+    "--device-cgroup-rule=c 188:* rwm"
+  ],
   "settings": {
     "platformio-ide.customPATH": "/usr/bin",
     "platformio-ide.forceUploadAndMonitor": true,
@@ -25,7 +25,6 @@
     "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
     "platformio-ide.disablePIOHomeStartup": true
   },
-
   "extensions": [
     "platformio.platformio-ide",
     "esbenp.prettier-vscode",
@@ -36,6 +35,5 @@
     "DavidAnson.vscode-markdownlint",
     "streetsidesoftware.code-spell-checker"
   ],
-
-	"remoteUser": "vscode"
+  "remoteUser": "vscode"
 }
