@@ -43,20 +43,30 @@ const relayApi = splitAppApi.injectEndpoints({
     }),
 
     eStopRelay: build.mutation<void, void>({
-      query: () => ({ url: `${relayUrl}?eStop`, method: "POST" }),
+      query: () => ({
+        url: relayUrl,
+        method: "POST",
+        params: { eStop: true },
+      }),
     }),
 
     startRelay: build.mutation<void, Profile["id"]>({
       query: (id) => ({
-        url: `${relayUrl}?startId=${id}`,
+        url: relayUrl,
         method: "POST",
+        params: {
+          startId: id,
+        },
       }),
     }),
 
     setSampleRate: build.mutation<void, RelayApiGet["updateRate"]>({
       query: (value) => ({
-        url: `${relayUrl}?sampleRate=${value}`,
+        url: relayUrl,
         method: "POST",
+        params: {
+          sampleRate: value,
+        },
       }),
     }),
   }),

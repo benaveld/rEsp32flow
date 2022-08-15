@@ -5,6 +5,7 @@ import ProfileList from "./profile/profileList";
 import RelayStatusView, { EStopButton } from "./relay/relayStatusView";
 import StatusView from "./status/statusView";
 import NightModeToggleButton from "./nightModeButton";
+import { SettingsDialog } from "./settingsDialog";
 
 function App() {
   const { isRelayOn } = useGetRelayStatusQuery(undefined, {
@@ -18,6 +19,7 @@ function App() {
           <StatusView sx={{ flexGrow: 1 }} />
           <EStopButton disabled={!isRelayOn}>EStop</EStopButton>
           <NightModeToggleButton />
+          <SettingsDialog />
         </Toolbar>
       </AppBar>
 
