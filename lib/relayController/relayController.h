@@ -14,6 +14,9 @@ namespace resp32flow
 
   class RelayController : public JsonI
   {
+  public:
+    using SampleRate_t = time_t;
+
   private:
     using stepItr_t = Profile::stepMap_t::const_iterator;
 
@@ -32,8 +35,8 @@ namespace resp32flow
     stepItr_t m_currentStepItr;
 
     time_t m_stepStartTime = 0;
-    double m_relayOnTime = 0;    // linked into pid output
-    double m_sampleRate = 20000; // in ms
+    MyPid::result_t m_relayOnTime = 0;    // linked into pid output
+    SampleRate_t m_sampleRate = 20000; // in ms
 
     ErrorMessage setupProfileStep();
     void stop();

@@ -6,13 +6,13 @@ export const relayApiUrl = `${baseApiUrl}/${relayUrl}`;
 export const relayApiWebSocketUrl = `ws://${baseUrl}/ws/relay`;
 
 export interface RelayApiGet {
+  updateRate: number;
+  uptime: number;
   info?: {
     profileId: number;
     stepId: number;
     stepTime: number;
     relayOnTime: number;
-    updateRate: number;
-    uptime: number;
   };
 }
 
@@ -52,6 +52,13 @@ const relayApi = splitAppApi.injectEndpoints({
         method: "POST",
       }),
     }),
+
+    setSampleRate: build.mutation<void, RelayApiGet["updateRate"]>({
+      query: (value) => ({
+        url: `${relayUrl}?sampleRate=${value}`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -59,4 +66,5 @@ export const {
   useGetRelayStatusQuery,
   useEStopRelayMutation,
   useStartRelayMutation,
+  useSetSampleRateMutation,
 } = relayApi;

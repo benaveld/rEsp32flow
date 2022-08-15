@@ -13,10 +13,17 @@ using rtosUtils::waitRecursiveTake;
 
 void controllerLoop(void *parameter)
 {
-  auto controller = (resp32flow::RelayController *)parameter;
-  while (controller->isOn())
+  try
   {
-    controller->tick();
+    auto controller = (resp32flow::RelayController *)parameter;
+    while (controller->isOn())
+    {
+      controller->tick();
+    }
+  }
+  catch (std::exception &e)
+  {
+    log_e("%s", e.what());
   }
 }
 
@@ -71,7 +78,10 @@ void resp32flow::RelayController::stop()
 
 void resp32flow::RelayController::eStop()
 {
+  waitRecursiveTake(m_mutex);
+  vTaskDelete(m_taskHandler);
   stop();
+  xSemaphoreGiveRecursive(m_mutex);
 }
 
 auto resp32flow::RelayController::setupProfileStep() -> ErrorMessage
@@ -141,6 +151,9 @@ resp32flow::time_t resp32flow::RelayController::getStepTimer() const
 void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) const
 {
   waitRecursiveTake(m_mutex);
+  a_jsonObject["updateRate"] = m_sampleRate;
+  a_jsonObject["uptime"] = millis();
+
   if (isOn())
   {
     auto info = a_jsonObject.createNestedObject("info");
@@ -148,8 +161,6 @@ void resp32flow::RelayController::toJSON(ArduinoJson::JsonObject a_jsonObject) c
     info["stepId"] = m_currentStepItr->second.id;
     info["stepTime"] = getStepTimer();
     info["relayOnTime"] = m_relayOnTime;
-    info["updateRate"] = m_sampleRate;
-    info["uptime"] = millis();
   }
   xSemaphoreGiveRecursive(m_mutex);
 }

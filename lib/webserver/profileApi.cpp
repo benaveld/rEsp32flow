@@ -110,21 +110,29 @@ void resp32flow::webServer::api::handleJsonProfile(resp32flow::ProfileHandler *a
 
 void resp32flow::webServer::api::handleProfile(resp32flow::ProfileHandler *a_profileHandler, AsyncWebServerRequest *a_request)
 {
-  auto &&id = getParameter<idParam_t::second_type>(a_request, ID_PARAM);
-  auto &&stepId = getParameter<idParam_t::second_type>(a_request, STEP_ID_PARAM);
-
-  switch (a_request->method())
+  try
   {
-  case HTTP_GET:
-    return handleProfileGet(a_profileHandler, id, stepId, a_request);
+    auto &&id = getParameter<idParam_t::second_type>(a_request, ID_PARAM);
+    auto &&stepId = getParameter<idParam_t::second_type>(a_request, STEP_ID_PARAM);
 
-  case HTTP_PUT:
-    return a_request->send(400, "text/plain", "No json with request.");
+    switch (a_request->method())
+    {
+    case HTTP_GET:
+      return handleProfileGet(a_profileHandler, id, stepId, a_request);
 
-  case HTTP_DELETE:
-    return handleDeleteProfile(a_profileHandler, id, stepId, a_request);
+    case HTTP_PUT:
+      return a_request->send(400, "text/plain", "No json with request.");
 
-  default:
-    return a_request->send(405, "text/plain", "Unsupported request method.");
+    case HTTP_DELETE:
+      return handleDeleteProfile(a_profileHandler, id, stepId, a_request);
+
+    default:
+      return a_request->send(405, "text/plain", "Unsupported request method.");
+    }
+  }
+  catch (std::exception &e)
+  {
+    log_e("%s", e.what());
+    a_request->send(400, "text/plain", e.what());
   }
 }

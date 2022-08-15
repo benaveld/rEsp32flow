@@ -106,6 +106,7 @@ void ProfileHandler::setProfileStep(JsonVariantConst a_json)
     throw Exception("json has no step id");
 
   m_map.at(a_json[Profile::Step::PROFILE_ID_JSON]).setStep({a_json});
+  storeProfiles();
 }
 
 void ProfileHandler::erase(const key_type &a_key)

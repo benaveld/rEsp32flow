@@ -44,24 +44,22 @@ const NextStepDivider = forwardRef<HTMLDivElement, StackProps>((props, ref) => (
 NextStepDivider.displayName = "NextStepDivider";
 
 const RelayStatusView = (props: RelayStatusViewProps) => {
-  const { info } = useGetRelayStatusQuery(undefined, {
-    selectFromResult: ({ data }) => ({
-      info: data?.info,
-    }),
+  const {
+    info,
+    uptime: lastUpdate,
+    updateRate: updateRateInMs,
+  } = useGetRelayStatusQuery(undefined, {
+    selectFromResult: ({ data }) => ({ ...data }),
   });
 
-  const { runningProfile, isLoading: isProfileLoading } = useGetProfilesQuery(
-    undefined,
-    {
-      selectFromResult: ({ data, isLoading }) => ({
-        isLoading,
-        runningProfile: info
-          ? selectProfileById(data, info.profileId)
-          : undefined,
-      }),
-    }
-  );
-  const { uptime = info?.uptime ?? 0 } = useGetStatusUpdateQuery(undefined, {
+  const { runningProfile } = useGetProfilesQuery(undefined, {
+    selectFromResult: ({ data }) => ({
+      runningProfile: info
+        ? selectProfileById(data, info.profileId)
+        : undefined,
+    }),
+  });
+  const { uptime = lastUpdate ?? 0 } = useGetStatusUpdateQuery(undefined, {
     selectFromResult: ({ data }) => ({ uptime: data?.uptime }),
   });
 
@@ -74,18 +72,16 @@ const RelayStatusView = (props: RelayStatusViewProps) => {
     [runningProfile, currentStepId]
   );
 
-  if (!info) return <NotRunningRelay {...props} />;
-  if (!runningProfile) {
-    if (isProfileLoading) return <ProfilesAreLoading {...props} />;
-    throw new Error("Running Profile ID not found");
-  }
+  if (!info || updateRateInMs === undefined || lastUpdate === undefined)
+    return <NotRunningRelay {...props} />;
+  if (!runningProfile) return <ProfilesAreLoading {...props} />;
 
   const { fractionDigits = 2 } = props;
   const msToSec = (value: number) => (value / 1000).toFixed(fractionDigits);
 
   const relayOnTime = msToSec(info.relayOnTime);
-  const updateRate = msToSec(info.updateRate);
-  const stepTime = Math.round((info.stepTime + (uptime - info.uptime)) / 1000);
+  const updateRate = msToSec(updateRateInMs);
+  const stepTime = Math.round((info.stepTime + (uptime - lastUpdate)) / 1000);
 
   return (
     <Paper sx={{ padding: "8px" }} {...props}>

@@ -10,8 +10,15 @@ void temperatureUpdateLoop(void *parameter)
   auto temperature = (resp32flow::TemperatureHistory *)parameter;
   for (;;)
   {
-    temperature->_updateHistory();
-    vTaskDelay(temperature->m_sampleRate / portTICK_PERIOD_MS);
+    try
+    {
+      temperature->_updateHistory();
+      vTaskDelay(temperature->m_sampleRate / portTICK_PERIOD_MS);
+    }
+    catch (std::exception &e)
+    {
+      log_e("%s", e.what());
+    }
   }
 }
 
@@ -55,7 +62,7 @@ void resp32flow::TemperatureHistory::toJson(ArduinoJson::JsonObject a_jsonObject
   waitRecursiveTake(m_mutex);
   a_jsonObject["historySampleRate"] = m_sampleRate;
 
-  auto&& uptime = millis();
+  auto &&uptime = millis();
   auto time = uptime > a_timeBack ? uptime - a_timeBack : 0;
   auto jsonHistory = a_jsonObject.createNestedArray("history");
   for (auto i = m_history.size() - 1; i >= 0; i--)

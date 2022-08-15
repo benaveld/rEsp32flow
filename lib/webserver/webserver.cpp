@@ -37,17 +37,25 @@ static const std::array<std::string, 6> STATIC_FILES{{"/favicon.svg",
 
 static void onNotFound(AsyncWebServerRequest *request)
 {
-  // Respones to CORS pre-flight requests.
-  if (request->method() == HTTP_OPTIONS)
+  try
   {
-    auto response = request->beginResponse(200);
-    response->addHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-    response->addHeader("Access-Control-Max-Age", "60"); // Cache results of a preflight request for 1 minute
-    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
-    request->send(response);
-    return;
+    // Respones to CORS pre-flight requests.
+    if (request->method() == HTTP_OPTIONS)
+    {
+      auto response = request->beginResponse(200);
+      response->addHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+      response->addHeader("Access-Control-Max-Age", "60"); // Cache results of a preflight request for 1 minute
+      response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+      request->send(response);
+      return;
+    }
+    request->send(404);
   }
-  request->send(404);
+  catch (std::exception &e)
+  {
+    log_e("%s", e.what());
+    request->send(400, "text/plain", e.what());
+  }
 }
 
 resp32flow::WebServer::WebServer(uint16_t a_port) : m_server(a_port)

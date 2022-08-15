@@ -40,7 +40,7 @@ const statusApi = splitAppApi.injectEndpoints({
       query: () => statusJsonUrl,
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const invalidateHistory = () =>
-          dispatch(statusApi.util.invalidateTags(["history", "profiles"]));
+          dispatch(statusApi.util.invalidateTags(["history"]));
 
         try {
           const { data: statusUpdate } = await queryFulfilled;
@@ -50,7 +50,10 @@ const statusApi = splitAppApi.injectEndpoints({
               undefined,
               (draft) => {
                 const lastUptime = draft.ids.at(-1);
-                if (lastUptime && lastUptime > statusUpdate.uptime) {
+                if (
+                  lastUptime !== undefined &&
+                  lastUptime > statusUpdate.uptime
+                ) {
                   invalidateHistory();
                   return;
                 }
@@ -75,8 +78,11 @@ const statusApi = splitAppApi.injectEndpoints({
     >({
       query: () => `${temperatureJsonUrl}?timeBack=${keepHistoryTime}`,
       providesTags: ["history"],
-      transformResponse(response: HistoryGetResponse) {
-        return historyAdapter.addMany(initialHistoryState, response.history);
+      transformResponse(response?: HistoryGetResponse) {
+        return historyAdapter.addMany(
+          initialHistoryState,
+          response?.history ?? []
+        );
       },
     }),
   }),

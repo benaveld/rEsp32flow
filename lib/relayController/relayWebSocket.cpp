@@ -4,6 +4,7 @@
 #include <AsyncJson.h>
 
 #include <functional>
+#include <type_traits>
 
 #include <profileHandler.h>
 #include <apiUtil.h>
@@ -46,7 +47,7 @@ void resp32flow::RelayWebSocket::attachToService(AsyncWebServer &a_server)
 String resp32flow::RelayWebSocket::getJsonMessage() const
 {
   DynamicJsonDocument doc(JSON_SIZE);
-  doc["uptime"] = millis(); // Needed so that the root json is an object.
+  doc["isOn"] = m_controller.isOn(); // Needed so that the root json is an object.
   toJSON(doc);
   char buffer[JSON_SIZE];
   serializeJson(doc, buffer);
@@ -55,6 +56,10 @@ String resp32flow::RelayWebSocket::getJsonMessage() const
 
 void resp32flow::RelayWebSocket::updateClients()
 {
+  while (!m_ws.availableForWriteAll())
+  {
+    delay(10);
+  }
   m_ws.textAll(getJsonMessage());
 }
 
@@ -65,49 +70,61 @@ void resp32flow::RelayWebSocket::toJSON(ArduinoJson::JsonVariant a_jsonVariant) 
 
 void resp32flow::RelayWebSocket::handleRequest(AsyncWebServerRequest *a_request)
 {
-  switch (a_request->method())
-  {
-  case HTTP_GET:
-    return handleGet(a_request);
-
-  case HTTP_POST:
-    return handlePost(a_request);
-
-  default:
-    return a_request->send(405);
-  }
-}
-
-void resp32flow::RelayWebSocket::handlePost(AsyncWebServerRequest *a_request)
-{
-  using util::api::getParameter;
   try
   {
-    auto startId = getParameter<Profile::id_t>(a_request, "startId");
-    if (startId.first)
+    switch (a_request->method())
     {
-      auto &&profile = m_profiles.at(startId.second);
-      auto &&error = m_controller.start(profile);
-      if (error.isError)
-      {
-        const auto &message = error.fullMessage();
-        log_e("%s", message.c_str());
-        return a_request->send(406, "text/plain", message);
-      }
-    }
+    case HTTP_GET:
+      return handleGet(a_request);
 
-    if (a_request->hasParam("eStop"))
-    {
-      m_controller.eStop();
-    }
+    case HTTP_POST:
+      return handlePost(a_request);
 
-    a_request->send(200);
+    default:
+      return a_request->send(405);
+    }
   }
   catch (std::exception &e)
   {
     log_e("%s", e.what());
     a_request->send(400, "text/plain", e.what());
   }
+}
+
+void resp32flow::RelayWebSocket::handlePost(AsyncWebServerRequest *a_request)
+{
+  using util::api::getParameter;
+  auto startId = getParameter<Profile::id_t>(a_request, "startId");
+  if (startId.first)
+  {
+    auto &&profile = m_profiles.at(startId.second);
+    auto &&error = m_controller.start(profile);
+    if (error.isError)
+    {
+      const auto &message = error.fullMessage();
+      log_e("%s", message.c_str());
+      return a_request->send(406, "text/plain", message);
+    }
+  }
+
+  if (a_request->hasParam("eStop"))
+  {
+    m_controller.eStop();
+  }
+
+  auto sampleRate = getParameter<long long>(a_request, "sampleRate");
+  if (sampleRate.first)
+  {
+    if (sampleRate.second <= 0)
+      return a_request->send(406, "text/plain", "sampleRate can't be less then 1.");
+
+    if (sampleRate.second >= ULONG_MAX)
+      return a_request->send(406, "text/plain", "sampleRate can't be larger then 4294967296.");
+
+    m_controller.setSampleRate(static_cast<std::remove_reference<decltype(m_controller)>::type::SampleRate_t>(sampleRate.second));
+  }
+
+  a_request->send(200);
 }
 
 void resp32flow::RelayWebSocket::handleGet(AsyncWebServerRequest *a_request) const

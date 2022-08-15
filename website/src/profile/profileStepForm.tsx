@@ -40,6 +40,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     if (!isValid(step)) return;
+
     putProfileStep({ step });
     dispatch(stopEditingProfileStep());
   };
@@ -127,7 +128,7 @@ export const ProfileStepForm = (props: ProfileStepFormProps) => {
       </CardContent>
       <CardActions sx={{ flexDirection: "row-reverse" }}>
         <Button onClick={handleCancel}>Cancel</Button>
-        <Button type="submit">StandardSave</Button>
+        <Button type="submit">Save</Button>
       </CardActions>
     </Card>
   );

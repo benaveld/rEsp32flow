@@ -28,7 +28,8 @@
     "test": "react-scripts test",
     "test:noWatch": "react-scripts test --watchAll=false",
     "eject": "react-scripts eject",
-    "prepare": "cd .. && husky install || echo '.git dir not found.'"
+    "prepare": "cd .. && husky install || echo '.git dir not found.'",
+    "postbuild": "bash postBuild.sh"
   },
   "browserslist": {
     "production": [
