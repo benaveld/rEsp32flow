@@ -76,7 +76,12 @@ const statusApi = splitAppApi.injectEndpoints({
       EntityState<TemperatureHistorySlice>,
       void
     >({
-      query: () => `${temperatureJsonUrl}?timeBack=${keepHistoryTime}`,
+      query: () => ({
+        url: temperatureJsonUrl,
+        params: {
+          timeBack: keepHistoryTime,
+        },
+      }),
       providesTags: ["history"],
       transformResponse(response?: HistoryGetResponse) {
         return historyAdapter.addMany(
